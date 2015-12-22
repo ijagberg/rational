@@ -6,12 +6,12 @@ Rational() {
 
 }
 
-ReducedRational::ReducedRational(const long & n) :
+ReducedRational::ReducedRational(const long& n) :
 Rational(n) {
 	reduce();
 }
 
-ReducedRational::ReducedRational(const long & n, const long & d) : 
+ReducedRational::ReducedRational(const long& n, const long& d) : 
 Rational(n, d) {
 	reduce();
 }
@@ -21,18 +21,18 @@ ReducedRational(std::string(cp)) {
 
 }
 
-ReducedRational::ReducedRational(const std::string & str) :
+ReducedRational::ReducedRational(const std::string& str) :
 Rational(str) {
 	reduce();
 }
 
-ReducedRational::ReducedRational(const Rational & other) {
+ReducedRational::ReducedRational(const Rational& other) {
 	this->numerator = other.numerator;
 	this->denominator = other.denominator;
 	reduce();
 }
 
-ReducedRational::ReducedRational(const ReducedRational & other) {
+ReducedRational::ReducedRational(const ReducedRational& other) {
 	this->numerator = other.numerator;
 	this->denominator = other.denominator;
 }

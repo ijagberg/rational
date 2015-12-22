@@ -9,12 +9,12 @@ private:
 
 public:
 	ReducedRational();
-	ReducedRational(const long & n);
-	ReducedRational(const long & n, const long & d);
+	ReducedRational(const long& n);
+	ReducedRational(const long& n, const long& d);
 	ReducedRational(const char* str);
-	ReducedRational(const std::string & str);
-	ReducedRational(const Rational & other);
-	ReducedRational(const ReducedRational & other);
+	ReducedRational(const std::string& str);
+	ReducedRational(const Rational& other);
+	ReducedRational(const ReducedRational& other);
 	~ReducedRational();
 
 	bool isReduced() const;

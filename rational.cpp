@@ -12,13 +12,13 @@ denominator(1) {
 
 }
 
-Rational::Rational(const long & n) :
+Rational::Rational(const long& n) :
 numerator(n),
 denominator(1) {
 
 }
 
-Rational::Rational(const long & n, const long & d) : 
+Rational::Rational(const long& n, const long& d) : 
 numerator(n),
 denominator(d) {
 	if (d == 0)
@@ -34,7 +34,7 @@ Rational(std::string(cp)) {
 
 }
 
-Rational::Rational(const std::string & str) {
+Rational::Rational(const std::string& str) {
 	if (std::regex_match(str, type_1)) {
 		numerator = atoi(str.c_str());
 		denominator = 1;
@@ -58,12 +58,12 @@ Rational::Rational(const std::string & str) {
 	}
 }
 
-Rational::Rational(const Rational & other) {
+Rational::Rational(const Rational& other) {
 	this->numerator = other.numerator;
 	this->denominator = other.denominator;
 }
 
-Rational::Rational(const ReducedRational & other) {
+Rational::Rational(const ReducedRational& other) {
 	this->numerator = other.numerator;
 	this->denominator = other.denominator;
 }
@@ -120,7 +120,7 @@ bool Rational::isReduced() const {
 
 
 
-Rational& Rational::operator+=(const Rational & rhs) {
+Rational& Rational::operator+=(const Rational& rhs) {
 	if (this->denominator == rhs.denominator) {
 		this->numerator = this->numerator + rhs.numerator;
 	} else {
@@ -130,7 +130,7 @@ Rational& Rational::operator+=(const Rational & rhs) {
 	return *this;
 }
 
-Rational& Rational::operator-=(const Rational & rhs) {
+Rational& Rational::operator-=(const Rational& rhs) {
 	if (this->denominator == rhs.denominator) {
 		this->numerator = this->numerator - rhs.numerator;
 	} else {
@@ -140,13 +140,13 @@ Rational& Rational::operator-=(const Rational & rhs) {
 	return *this;
 }
 
-Rational& Rational::operator*=(const Rational & rhs) {
+Rational& Rational::operator*=(const Rational& rhs) {
 	this->numerator *= rhs.numerator;
 	this->denominator *= rhs.denominator;
 	return *this;
 }
 
-Rational& Rational::operator/=(const Rational & rhs) {
+Rational& Rational::operator/=(const Rational& rhs) {
 	*this *= rhs.inverse();
 	return *this;
 }
@@ -177,7 +177,7 @@ Rational Rational::operator--(int) {
 
 
 
-Rational& Rational::operator=(const Rational & other) {
+Rational& Rational::operator=(const Rational& other) {
 	this->numerator = other.numerator;
 	this->denominator = other.denominator;
 	return *this;
@@ -216,6 +216,6 @@ bool Rational::operator>=(const Rational& rhs) const {
 
 
 
-std::ostream & operator<<(std::ostream & os, const Rational & rational) {
+std::ostream& operator<<(std::ostream& os, const Rational& rational) {
 	return (os << rational.numerator << "/" << rational.denominator);
 }
