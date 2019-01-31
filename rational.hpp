@@ -54,8 +54,8 @@ class Rational
 	/***/
 };
 
-static const std::regex type_1 = std::regex("-?[0-9]+");
-static const std::regex type_2 = std::regex("-?[0-9]+/-?[0-9]+");
+static const std::regex type_1 = std::regex("-?[0-9]+(.[0-9]+)?"); // 0.5
+static const std::regex type_2 = std::regex("-?[0-9]+/-?[0-9]+"); // 1/2
 
 inline Rational operator+(const Rational &lhs, const Rational &rhs)
 {

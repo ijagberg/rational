@@ -32,8 +32,8 @@ Rational::Rational(const double &value)
 		num *= 10.0;
 		den *= 10.0;
 	}
-	Rational r(num, den);
-	*this = r.reduce();
+	numerator = num;
+	denominator = den;
 }
 
 Rational::Rational(const char *cp) : Rational(std::string(cp))
@@ -44,8 +44,7 @@ Rational::Rational(const std::string &str)
 {
 	if (std::regex_match(str, type_1))
 	{
-		numerator = atoi(str.c_str());
-		denominator = 1;
+		*this = Rational(atof(str.c_str()));
 	}
 	else if (std::regex_match(str, type_2))
 	{
@@ -56,8 +55,8 @@ Rational::Rational(const std::string &str)
 		{
 			values.push_back(item);
 		}
-		numerator = atoi(values[0].c_str());
-		denominator = atoi(values[1].c_str());
+		numerator = atol(values[0].c_str());
+		denominator = atol(values[1].c_str());
 		if (denominator == 0)
 		{
 			throw std::invalid_argument("Denominator can't be 0");
