@@ -13,7 +13,7 @@ int main()
 	std::cout << "Rational a(5): " << a << std::endl;
 	std::cout << "Rational r(\"53015/125\"): " << r << std::endl;
 	std::cout << "Rational b(678, 1093): " << b << std::endl;
-	std::cout << "Rational c = (r+b).reduce(): " << (r + b).reduce() << std::endl;
+	std::cout << "Rational c = (r+b).reduce(): " << c << std::endl;
 	std::cout << "Rational d = 0.587193874: " << d << std::endl;
 	std::cout << "Rational k = \"0.5\": " << k << std::endl;
 	std::cout << "ReducedRational x = d: " << x << std::endl;
