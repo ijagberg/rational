@@ -1,6 +1,4 @@
-use std::ops::Add;
-use std::ops::Mul;
-use std::ops::Sub;
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Copy, Clone, Debug)]
 struct Rational {
@@ -115,6 +113,10 @@ mod tests {
         let left = Rational::new(5, 9);
         let right = Rational::new(10, 31);
         assert_eq!(left * right, Rational::new(50, 279));
+
+        let left = Rational::new(-5, 10);
+        let right = Rational::new(100, 10);
+        assert_eq!(left * right, Rational::new(-5, 1));
     }
 
     #[test]
