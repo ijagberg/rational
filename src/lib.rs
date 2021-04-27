@@ -7,9 +7,10 @@ pub struct Rational {
 }
 
 impl Rational {
-    pub fn new<T>(numerator: T, denominator: T) -> Self
+    pub fn new<N, D>(numerator: N, denominator: D) -> Self
     where
-        Rational: From<T>,
+        Rational: From<N>,
+        Rational: From<D>,
     {
         let numerator = Rational::from(numerator);
         let denominator = Rational::from(denominator);
@@ -107,7 +108,7 @@ where
         let numerator = self.numerator * rhs.denominator;
         let denominator = self.denominator * rhs.numerator;
 
-        Rational::new::<i128>(numerator, denominator)
+        Rational::new::<i128, i128>(numerator, denominator)
     }
 }
 
@@ -122,7 +123,7 @@ where
         let numerator = self.numerator * rhs.numerator;
         let denominator = self.denominator * rhs.denominator;
 
-        Rational::new::<i128>(numerator, denominator)
+        Rational::new::<i128, i128>(numerator, denominator)
     }
 }
 
@@ -136,7 +137,7 @@ where
         let rhs = Rational::from(rhs);
         let denominator = self.denominator * rhs.denominator;
 
-        Rational::new::<i128>(
+        Rational::new::<i128, i128>(
             self.numerator * rhs.denominator + rhs.numerator * self.denominator,
             denominator,
         )
@@ -228,6 +229,9 @@ mod tests {
     fn ctor_test() {
         let rat = Rational::new(Rational::new(1, 2), Rational::new(2, 4));
         assert_eq!(rat, Rational::new(1, 1));
+
+        let rat = Rational::new(Rational::new(1, 2), 3);
+        assert_eq!(rat, Rational::new(1, 6));
     }
 
     #[test]
