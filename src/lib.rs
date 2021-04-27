@@ -166,6 +166,22 @@ impl PartialEq for Rational {
     }
 }
 
+impl Eq for Rational {}
+
+impl PartialOrd for Rational {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Rational {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let num1 = self.numerator * other.denominator;
+        let num2 = self.denominator * other.numerator;
+        num1.cmp(&num2)
+    }
+}
+
 impl Into<f64> for Rational {
     fn into(self) -> f64 {
         (self.numerator as f64) / (self.denominator as f64)
@@ -247,5 +263,12 @@ mod tests {
     fn inverse_test() {
         let inverse = Rational::new(5, 7).inverse();
         assert_eq!(inverse, Rational::new(7, 5));
+    }
+
+    #[test]
+    fn ordering_test() {
+        let left = Rational::new(127, 298);
+        let right = Rational::new(10, 11);
+        assert!(left < right);
     }
 }
