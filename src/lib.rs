@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    fmt::Display,
+    ops::{Add, Div, Mul, Sub},
+};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Rational {
@@ -166,6 +169,12 @@ impl PartialEq for Rational {
 impl Into<f64> for Rational {
     fn into(self) -> f64 {
         (self.numerator as f64) / (self.denominator as f64)
+    }
+}
+
+impl Display for Rational {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}/{}", self.numerator, self.denominator)
     }
 }
 
