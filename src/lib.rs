@@ -205,6 +205,10 @@ pub fn gcd(a: i128, b: i128) -> i128 {
     a
 }
 
+pub fn r(n: i128, d: i128) -> Rational {
+    Rational::new(n, d)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
