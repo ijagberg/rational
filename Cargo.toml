@@ -1,7 +1,13 @@
 [package]
 name = "rational"
+description = "Minimalistic library for rational numbers"
 version = "0.1.0"
 authors = ["Isak Jägberg <ijagberg@gmail.com>"]
 edition = "2018"
+license = "MIT"
+keywords = ["rational", "ratio", "fraction", "fractions"]
+categories = ["mathematics", "science"]
+repository = "https://github.com/ijagberg/rational"
+homepage = "https://github.com/ijagberg/rational"
 
 [dependencies]
