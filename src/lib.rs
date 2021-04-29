@@ -45,9 +45,10 @@ impl Rational {
     }
 
     /// Construct a new Rational, returning `None` if the denominator is 0.
-    pub fn new_checked<T>(numerator: T, denominator: T) -> Option<Self>
+    pub fn new_checked<N, D>(numerator: N, denominator: D) -> Option<Self>
     where
-        Rational: From<T>,
+        Rational: From<N>,
+        Rational: From<D>,
     {
         let numerator = Rational::from(numerator);
         let denominator = Rational::from(denominator);
