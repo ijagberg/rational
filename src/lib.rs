@@ -342,12 +342,18 @@ mod tests {
 
         let rat = Rational::new(Rational::new(1, 2), 3);
         assert_eq!(rat, Rational::new(1, 6));
+
+        let invalid = Rational::new_checked(1, 0);
+        assert!(invalid.is_none());
     }
 
     #[test]
     fn inverse_test() {
         let inverse = Rational::new(5, 7).inverse();
         assert_eq!(inverse, Rational::new(7, 5));
+
+        let invalid_inverse = Rational::new(0, 1);
+        assert!(invalid_inverse.inverse_checked().is_none());
     }
 
     #[test]
