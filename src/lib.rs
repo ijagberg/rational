@@ -8,7 +8,7 @@ use std::{
 };
 
 /// A rational number (a fraction of two integers).
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Hash)]
 pub struct Rational {
     /// The numerator (number above the fraction line).
     numerator: i128,
@@ -277,6 +277,8 @@ impl Display for Rational {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::*;
     use crate::extras::*;
 
@@ -353,6 +355,17 @@ mod tests {
         let left = Rational::new(127, 298);
         let right = Rational::new(10, 11);
         assert!(left < right);
+    }
+
+    #[test]
+    fn hash_test() {
+        let key1 = Rational::new(1, 2);
+        let mut map = HashMap::new();
+
+        map.insert(key1, "exists");
+
+        assert_eq!(map.get(&Rational::new(2, 4)).unwrap(), &"exists");
+        assert!(map.get(&Rational::new(1, 3)).is_none());
     }
 
     #[test]
