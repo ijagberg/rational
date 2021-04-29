@@ -1,6 +1,9 @@
+pub mod extras;
+
+use extras::gcd;
 use std::{
     fmt::Display,
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 #[derive(Copy, Clone, Debug)]
@@ -10,6 +13,10 @@ pub struct Rational {
 }
 
 impl Rational {
+    /// Construct a new Rational
+    ///
+    /// ## Panics
+    /// * If the resulting denominator is 0
     pub fn new<N, D>(numerator: N, denominator: D) -> Self
     where
         Rational: From<N>,
@@ -33,6 +40,7 @@ impl Rational {
         this
     }
 
+    /// Construct a new Rational, returning `None` if the denominator is 0
     pub fn new_checked<T>(numerator: T, denominator: T) -> Option<Self>
     where
         Rational: From<T>,
@@ -55,6 +63,7 @@ impl Rational {
         }
     }
 
+    /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0
     pub fn inverse_checked(self) -> Option<Self> {
         if self.numerator == 0 {
             None
@@ -63,11 +72,21 @@ impl Rational {
         }
     }
 
+    /// Returns the inverse of this `Rational`
+    ///
+    /// ## Panics
+    /// * If the denominator of the inverse is 0
     pub fn inverse(self) -> Self {
         if self.numerator == 0 {
             panic!("numerator cannot be 0 when inverting");
         }
         Self::new(self.denominator, self.numerator)
+    }
+
+    /// Returns the decimal value of this `Rational`.
+    /// Equivalent to `f64::from(self)`.
+    pub fn decimal_value(self) -> f64 {
+        f64::from(self)
     }
 
     fn reduce(&mut self) {
@@ -99,6 +118,7 @@ impl_from!(i16);
 impl_from!(i32);
 impl_from!(i64);
 impl_from!(i128);
+impl_from!(isize);
 
 impl<T> Div<T> for Rational
 where
@@ -115,6 +135,16 @@ where
     }
 }
 
+impl<T> DivAssign<T> for Rational
+where
+    Rational: From<T>,
+{
+    fn div_assign(&mut self, rhs: T) {
+        let result = *self / rhs;
+        *self = result;
+    }
+}
+
 impl<T> Mul<T> for Rational
 where
     Rational: From<T>,
@@ -127,6 +157,16 @@ where
         let denominator = self.denominator * rhs.denominator;
 
         Rational::new::<i128, i128>(numerator, denominator)
+    }
+}
+
+impl<T> MulAssign<T> for Rational
+where
+    Rational: From<T>,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        let result = *self * rhs;
+        *self = result;
     }
 }
 
@@ -147,6 +187,16 @@ where
     }
 }
 
+impl<T> AddAssign<T> for Rational
+where
+    Rational: From<T>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        let result = *self + rhs;
+        *self = result;
+    }
+}
+
 impl<T> Sub<T> for Rational
 where
     Rational: From<T>,
@@ -155,8 +205,25 @@ where
 
     fn sub(self, rhs: T) -> Self::Output {
         let rhs = Rational::from(rhs);
-        let rhs_neg: Rational = Mul::<i128>::mul(rhs, -1_i128);
-        Add::<Rational>::add(self, rhs_neg)
+        Add::<Rational>::add(self, Neg::neg(rhs))
+    }
+}
+
+impl<T> SubAssign<T> for Rational
+where
+    Rational: From<T>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        let result = *self - rhs;
+        *self = result;
+    }
+}
+
+impl Neg for Rational {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        self * -1
     }
 }
 
@@ -182,9 +249,9 @@ impl Ord for Rational {
     }
 }
 
-impl Into<f64> for Rational {
-    fn into(self) -> f64 {
-        (self.numerator as f64) / (self.denominator as f64)
+impl From<Rational> for f64 {
+    fn from(rat: Rational) -> f64 {
+        (rat.numerator as f64) / (rat.denominator as f64)
     }
 }
 
@@ -194,24 +261,10 @@ impl Display for Rational {
     }
 }
 
-pub fn gcd(a: i128, b: i128) -> i128 {
-    let mut a = a;
-    let mut b = b;
-    while b != 0 {
-        let temp = b;
-        b = a % b;
-        a = temp;
-    }
-    a
-}
-
-pub fn r(n: i128, d: i128) -> Rational {
-    Rational::new(n, d)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::extras::*;
 
     #[test]
     fn addition_test() {
@@ -220,6 +273,12 @@ mod tests {
         assert_eq!(left + Rational::new(3, 1), Rational::new(7, 2));
         assert_eq!(left + 10_u8, Rational::new(21, 2));
         assert_eq!(left + 217_u16, Rational::new(435, 2));
+
+        let mut left = r(1, 2);
+        left += 5;
+        assert_eq!(left, r(11, 2));
+        left += r(1, 2);
+        assert_eq!(left, r(6, 1));
     }
 
     #[test]
@@ -245,6 +304,12 @@ mod tests {
         let left = Rational::new(5, 9);
         let right = Rational::new(10, 31);
         assert_eq!(left / right, Rational::new(31, 18));
+    }
+
+    #[test]
+    fn negation_test() {
+        let rat = r(5, 9);
+        assert_eq!(-rat, r(-5, 9));
     }
 
     #[test]
@@ -274,5 +339,12 @@ mod tests {
         let left = Rational::new(127, 298);
         let right = Rational::new(10, 11);
         assert!(left < right);
+    }
+
+    #[test]
+    fn readme_test() {
+        let one_half = Rational::new(1, 2);
+        let two_quarters = Rational::new(2, 4);
+        assert_eq!(one_half, two_quarters);
     }
 }
