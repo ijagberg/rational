@@ -1,3 +1,4 @@
+/// Contains some helper functions that can be useful.
 pub mod extras;
 
 use extras::gcd;
@@ -6,9 +7,12 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+/// A rational number (a fraction of two integers).
 #[derive(Copy, Clone, Debug)]
 pub struct Rational {
+    /// The numerator (number above the fraction line).
     numerator: i128,
+    /// The denominator (number below the fraction line).
     denominator: i128,
 }
 
@@ -365,5 +369,11 @@ mod tests {
         // mathematical ops are implemented:
         let sum = Rational::new(1, 9) + Rational::new(5, 4);
         assert_eq!(sum, Rational::new(49, 36));
+
+        // can get the inverse of a rational:
+        let orig = Rational::new(80, 20);
+        let inverse = orig.inverse();
+        assert_eq!(inverse, Rational::new(20, 80));
+        assert_eq!(inverse, Rational::new(1, orig));
     }
 }

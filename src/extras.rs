@@ -1,10 +1,26 @@
 use crate::Rational;
 
-/// Convenience method for constructing a simple `Rational`
+/// Convenience method for constructing a simple `Rational`.
+///
+/// ## Example
+/// ```rust
+/// # use rational::{Rational, extras::*};
+/// let one_half = r(1, 2);
+/// assert_eq!(one_half, Rational::new(1, 2));
+/// ```
 pub fn r(n: i128, d: i128) -> Rational {
     Rational::new(n, d)
 }
 
+/// Calculate the greatest common divisor of two numbers.
+///
+/// ## Example
+/// ```rust
+/// # use rational::extras::*;
+/// assert_eq!(gcd(9, 60), 3);
+/// assert_eq!(gcd(899, 957), 29);
+/// assert_eq!(gcd(-899, 957), 29); 
+/// ```
 pub fn gcd(mut a: i128, mut b: i128) -> i128 {
     a = a.abs();
     b = b.abs();
