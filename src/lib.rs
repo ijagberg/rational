@@ -13,10 +13,10 @@ pub struct Rational {
 }
 
 impl Rational {
-    /// Construct a new Rational
+    /// Construct a new Rational.
     ///
     /// ## Panics
-    /// * If the resulting denominator is 0
+    /// * If the resulting denominator is 0.
     pub fn new<N, D>(numerator: N, denominator: D) -> Self
     where
         Rational: From<N>,
@@ -40,7 +40,7 @@ impl Rational {
         this
     }
 
-    /// Construct a new Rational, returning `None` if the denominator is 0
+    /// Construct a new Rational, returning `None` if the denominator is 0.
     pub fn new_checked<T>(numerator: T, denominator: T) -> Option<Self>
     where
         Rational: From<T>,
@@ -63,7 +63,17 @@ impl Rational {
         }
     }
 
-    /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0
+    /// Get the numerator in this `Rational`.
+    pub fn numerator(&self) -> i128 {
+        self.numerator
+    }
+
+    /// Get the denominator in this `Rational`.
+    pub fn denominator(&self) -> i128 {
+        self.denominator
+    }
+
+    /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0.
     pub fn inverse_checked(self) -> Option<Self> {
         if self.numerator == 0 {
             None
@@ -72,10 +82,10 @@ impl Rational {
         }
     }
 
-    /// Returns the inverse of this `Rational`
+    /// Returns the inverse of this `Rational`.
     ///
     /// ## Panics
-    /// * If the denominator of the inverse is 0
+    /// * If the denominator of the inverse is 0.
     pub fn inverse(self) -> Self {
         if self.numerator == 0 {
             panic!("numerator cannot be 0 when inverting");
@@ -343,8 +353,17 @@ mod tests {
 
     #[test]
     fn readme_test() {
+        // all rationals are automatically reduced when created, so equality works as following:
         let one_half = Rational::new(1, 2);
         let two_quarters = Rational::new(2, 4);
         assert_eq!(one_half, two_quarters);
+
+        // you can make more complicated rationals:
+        let one_half_over_one_quarter = Rational::new(Rational::new(1, 2), Rational::new(1, 4)); // (1/2)/(1/4)
+        assert_eq!(one_half_over_one_quarter, Rational::new(2, 1));
+
+        // mathematical ops are implemented:
+        let sum = Rational::new(1, 9) + Rational::new(5, 4);
+        assert_eq!(sum, Rational::new(49, 36));
     }
 }
