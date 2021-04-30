@@ -416,15 +416,6 @@ mod tests {
     }
 
     #[test]
-    fn overflow_test() {
-        #![allow(arithmetic_overflow)]
-        let a = 125_i8 * 64_i8;
-        let b = 121_i8 * 121_i8;
-        dbg!(a, b);
-        assert!(false);
-    }
-
-    #[test]
     fn readme_test() {
         // all rationals are automatically reduced when created, so equality works as following:
         let one_half = Rational::new(1, 2);
