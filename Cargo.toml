@@ -11,3 +11,6 @@ repository = "https://github.com/ijagberg/rational"
 homepage = "https://github.com/ijagberg/rational"
 
 [dependencies]
+
+[dev-dependencies]
+rand = "0.8.3"

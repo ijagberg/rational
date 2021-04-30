@@ -26,22 +26,7 @@ impl Rational {
         Rational: From<N>,
         Rational: From<D>,
     {
-        let numerator = Rational::from(numerator);
-        let denominator = Rational::from(denominator);
-
-        let num = numerator.numerator * denominator.denominator;
-        let den = numerator.denominator * denominator.numerator;
-
-        if den == 0 {
-            panic!("denominator cannot be 0");
-        }
-
-        let mut this = Self {
-            numerator: num,
-            denominator: den,
-        };
-        this.reduce();
-        this
+        Self::new_checked(numerator, denominator).expect("denominator can't be 0")
     }
 
     /// Construct a new Rational, returning `None` if the denominator is 0.
@@ -53,19 +38,31 @@ impl Rational {
         let numerator = Rational::from(numerator);
         let denominator = Rational::from(denominator);
 
-        let num = numerator.numerator * denominator.denominator;
-        let den = numerator.denominator * denominator.numerator;
+        let mut num = numerator.numerator * denominator.denominator;
+        let mut den = numerator.denominator * denominator.numerator;
 
         if den == 0 {
-            None
-        } else {
-            let mut this = Self {
-                numerator: num,
-                denominator: den,
-            };
-            this.reduce();
-            Some(this)
+            return None;
         }
+
+        match (num.is_negative(), den.is_negative()) {
+            (true, true) => {
+                num = -num;
+                den = -den;
+            }
+            (false, true) => {
+                num = -num;
+                den = -den;
+            }
+            _ => (),
+        }
+
+        let mut this = Self {
+            numerator: num,
+            denominator: den,
+        };
+        this.reduce();
+        Some(this)
     }
 
     /// Get the numerator in this `Rational`.
@@ -80,11 +77,7 @@ impl Rational {
 
     /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0.
     pub fn inverse_checked(self) -> Option<Self> {
-        if self.numerator == 0 {
-            None
-        } else {
-            Some(Self::new(self.denominator, self.numerator))
-        }
+        Self::new_checked(1, self)
     }
 
     /// Returns the inverse of this `Rational`.
@@ -92,10 +85,7 @@ impl Rational {
     /// ## Panics
     /// * If the denominator of the inverse is 0.
     pub fn inverse(self) -> Self {
-        if self.numerator == 0 {
-            panic!("numerator cannot be 0 when inverting");
-        }
-        Self::new(self.denominator, self.numerator)
+        Self::new(1, self)
     }
 
     /// Returns the decimal value of this `Rational`.
@@ -143,10 +133,7 @@ where
 
     fn div(self, rhs: T) -> Self::Output {
         let rhs = Rational::from(rhs);
-        let numerator = self.numerator * rhs.denominator;
-        let denominator = self.denominator * rhs.numerator;
-
-        Rational::new::<i128, i128>(numerator, denominator)
+        Rational::new::<Rational, Rational>(self, rhs)
     }
 }
 
@@ -168,8 +155,10 @@ where
 
     fn mul(self, rhs: T) -> Self::Output {
         let rhs = Rational::from(rhs);
-        let numerator = self.numerator * rhs.numerator;
-        let denominator = self.denominator * rhs.denominator;
+        let num_den_gcd = gcd(self.numerator, rhs.denominator);
+        let den_num_gcd = gcd(self.denominator, rhs.numerator);
+        let numerator = (self.numerator / num_den_gcd) * (rhs.numerator / den_num_gcd);
+        let denominator = (self.denominator / den_num_gcd) * (rhs.denominator / num_den_gcd);
 
         Rational::new::<i128, i128>(numerator, denominator)
     }
@@ -258,9 +247,15 @@ impl PartialOrd for Rational {
 
 impl Ord for Rational {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let num1 = self.numerator * other.denominator;
-        let num2 = self.denominator * other.numerator;
-        num1.cmp(&num2)
+        let num1 = self.numerator.checked_mul(other.denominator);
+        let num2 = self.denominator.checked_mul(other.numerator);
+        match (num1, num2) {
+            (Some(num1), Some(num2)) => num1.cmp(&num2),
+            _ => self
+                .decimal_value()
+                .partial_cmp(&other.decimal_value())
+                .unwrap(),
+        }
     }
 }
 
@@ -278,10 +273,10 @@ impl Display for Rational {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use super::*;
     use crate::extras::*;
+    use rand;
+    use std::collections::HashMap;
 
     #[test]
     fn addition_test() {
@@ -395,5 +390,20 @@ mod tests {
         let inverse = orig.inverse();
         assert_eq!(inverse, Rational::new(20, 80));
         assert_eq!(inverse, Rational::new(1, orig));
+    }
+
+    #[test]
+    fn fuzz_test() {
+        for _ in 0..500_000 {
+            let (a, b) = (random_rat(), random_rat());
+            assert_eq!(
+                a.partial_cmp(&b),
+                a.decimal_value().partial_cmp(&b.decimal_value())
+            );
+        }
+    }
+
+    fn random_rat() -> Rational {
+        Rational::new(rand::random::<i128>(), rand::random::<i128>())
     }
 }
