@@ -94,6 +94,48 @@ impl Rational {
         f64::from(self)
     }
 
+    pub fn checked_add<T>(self, other: T) -> Option<Self>
+    where
+        Self: From<T>,
+    {
+        let other = Self::from(other);
+        let num_den = self.numerator.checked_mul(other.denominator)?;
+        let den_num = self.denominator.checked_mul(other.numerator)?;
+        let numerator = num_den.checked_add(den_num)?;
+
+        let denominator = self.denominator.checked_mul(other.denominator)?;
+
+        Some(Self::new::<i128, i128>(numerator, denominator))
+    }
+
+    pub fn checked_mul<T>(self, other: T) -> Option<Self>
+    where
+        Self: From<T>,
+    {
+        let other = Self::from(other);
+        let numerator = self.numerator.checked_mul(other.numerator)?;
+        let denominator = self.denominator.checked_mul(other.denominator)?;
+        Some(Self::new::<i128, i128>(numerator, denominator))
+    }
+
+    pub fn checked_sub<T>(self, other: T) -> Option<Self>
+    where
+        Self: From<T>,
+    {
+        let other = Self::from(other);
+        self.checked_add::<Rational>(-other)
+    }
+
+    pub fn checked_div<T>(self, other: T) -> Option<Self>
+    where
+        Self: From<T>,
+    {
+        let other = Self::from(other);
+        let numerator = self.numerator.checked_mul(other.denominator)?;
+        let denominator = self.denominator.checked_mul(other.numerator)?;
+        Some(Self::new::<i128, i128>(numerator, denominator))
+    }
+
     fn reduce(&mut self) {
         let gcd = gcd(self.numerator, self.denominator);
         self.numerator /= gcd;
@@ -233,7 +275,10 @@ impl Neg for Rational {
 
 impl PartialEq for Rational {
     fn eq(&self, rhs: &Rational) -> bool {
-        self.numerator * rhs.denominator == rhs.numerator * self.denominator
+        match self.cmp(rhs) {
+            std::cmp::Ordering::Equal => true,
+            _ => false,
+        }
     }
 }
 
@@ -368,6 +413,15 @@ mod tests {
 
         assert_eq!(map.get(&Rational::new(2, 4)).unwrap(), &"exists");
         assert!(map.get(&Rational::new(1, 3)).is_none());
+    }
+
+    #[test]
+    fn overflow_test() {
+        #![allow(arithmetic_overflow)]
+        let a = 125_i8 * 64_i8;
+        let b = 121_i8 * 121_i8;
+        dbg!(a, b);
+        assert!(false);
     }
 
     #[test]
