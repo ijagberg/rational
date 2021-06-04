@@ -491,6 +491,13 @@ mod tests {
     }
 
     fn random_rat() -> Rational {
-        Rational::new(rand::random::<i128>(), rand::random::<i128>())
+        let den = loop {
+            // generate a random non-zero integer
+            let den: i128 = rand::random();
+            if den != 0 {
+                break den;
+            }
+        };
+        Rational::new(rand::random::<i128>(), den)
     }
 }
