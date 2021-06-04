@@ -46,11 +46,9 @@ impl Rational {
         }
 
         match (num.is_negative(), den.is_negative()) {
-            (true, true) => {
-                num = -num;
-                den = -den;
-            }
-            (false, true) => {
+            (true, true) | (false, true) => {
+                // if both are negative, then both should be positive (reduce the -1 factor)
+                // if only the denominator is negative, then move the -1 factor to the numerator for aesthetics
                 num = -num;
                 den = -den;
             }
@@ -70,9 +68,21 @@ impl Rational {
         self.numerator
     }
 
+    /// Set the numerator of this `Rational`.
+    pub fn set_numerator(&mut self, numerator: i128) {
+        self.numerator = numerator;
+        self.reduce();
+    }
+
     /// Get the denominator in this `Rational`.
     pub fn denominator(&self) -> i128 {
         self.denominator
+    }
+
+    /// Set the denominator of this `Rational`.
+    pub fn set_denominator(&mut self, denominator: i128) {
+        self.denominator = denominator;
+        self.reduce();
     }
 
     /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0.
@@ -166,6 +176,19 @@ impl_from!(i32);
 impl_from!(i64);
 impl_from!(i128);
 impl_from!(isize);
+
+impl<T, U> From<(T, U)> for Rational
+where
+    Rational: From<T>,
+    Rational: From<U>,
+{
+    fn from((n, d): (T, U)) -> Self {
+        let n = Rational::from(n);
+        let d = Rational::from(d);
+
+        Rational::new(n, d)
+    }
+}
 
 impl<T> Div<T> for Rational
 where
@@ -384,6 +407,9 @@ mod tests {
         let rat = Rational::new(Rational::new(1, 2), 3);
         assert_eq!(rat, Rational::new(1, 6));
 
+        let rat = Rational::new((1, 2), (2, 1));
+        assert_eq!(rat, Rational::new(1, 4));
+
         let invalid = Rational::new_checked(1, 0);
         assert!(invalid.is_none());
     }
@@ -446,6 +472,22 @@ mod tests {
                 a.decimal_value().partial_cmp(&b.decimal_value())
             );
         }
+    }
+
+    #[test]
+    fn set_denominator_test() {
+        let mut rat = Rational::new(1, 6);
+        rat.set_numerator(2);
+
+        assert_eq!(rat, Rational::new(1, 3));
+    }
+
+    #[test]
+    fn set_numerator_test() {
+        let mut rat = Rational::new(2, 3);
+        rat.set_denominator(4);
+
+        assert_eq!(rat, Rational::new(1, 2));
     }
 
     fn random_rat() -> Rational {
