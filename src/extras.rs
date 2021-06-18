@@ -1,3 +1,5 @@
+//! Contains some helper functions that can be useful.
+
 use crate::Rational;
 
 /// Convenience method for constructing a simple `Rational`.
@@ -33,34 +35,27 @@ pub fn gcd(mut a: i128, mut b: i128) -> i128 {
 }
 
 /// Create a [continued fraction](https://en.wikipedia.org/wiki/Continued_fraction#Motivation_and_notation).
-/// 
+///
 /// ## Notes
-/// The size of the numerator and denominator can grow quite quickly with increased lengths of `cont`, 
-/// so be careful with integer overflow.
+/// The size of the numerator and denominator can grow quite quickly with increased lengths of `cont`,
+/// so be careful with integer overflow. If `cont` is empty, then the resulting `Rational` will be equal to `init`.
 ///
 /// ## Example
 /// ```rust
 /// # use rational::extras::*;
 /// // to create a rational number that estimates the mathematical constant `e` (~2.7182818...)
 /// // we can use the continued fraction [2;1,2,1,1,4,1,1,6,1,1,8]
-/// let e = continued_fraction(2, vec![1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]);
+/// let e = continued_fraction(2, &[1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]);
 /// assert!((e.decimal_value() - std::f64::consts::E).abs() < 0.0000001);
 /// ```
-pub fn continued_fraction(init: u64, mut cont: Vec<u64>) -> Rational {
-    let mut r = None;
+pub fn continued_fraction(init: u64, cont: &[u64]) -> Rational {
+    let mut r = Rational::new(0, 1);
 
-    while let Some(d) = cont.pop() {
-        match r {
-            Some(rat) => {
-                r = Some(Rational::new(1, rat + d));
-            }
-            None => {
-                r = Some(Rational::new(1, d));
-            }
-        }
+    for &d in cont.iter().rev() {
+        r = Rational::new(1, r + d);
     }
 
-    r.unwrap_or_else(|| Rational::new(0, 1)) + init
+    r + init
 }
 
 #[cfg(test)]
@@ -78,13 +73,13 @@ mod tests {
 
     #[test]
     fn repeated_test() {
-        let continued = continued_fraction(1, vec![2; 15]);
+        let continued = continued_fraction(1, &[2; 15]);
 
         dbg!(continued, continued.decimal_value());
 
         assert!((continued.decimal_value() - 2.0_f64.sqrt()).abs() < 0.00000001);
 
-        let continued = continued_fraction(1, vec![1; 100]);
+        let continued = continued_fraction(1, &[1; 100]);
 
         dbg!(continued, continued.decimal_value());
 
@@ -92,7 +87,7 @@ mod tests {
 
         let continued = continued_fraction(
             4,
-            vec![
+            &[
                 2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8, 2, 1, 3, 1,
                 2, 8, 2, 1, 3, 1, 2, 8,
             ],
@@ -101,5 +96,12 @@ mod tests {
         dbg!(continued, continued.decimal_value(), 19.0_f64.sqrt());
 
         assert!((continued.decimal_value() - 19.0_f64.sqrt()).abs() < 0.00001);
+    }
+
+    #[test]
+    fn empty_continued_fraction_test() {
+        let continued = continued_fraction(1, &[]);
+        dbg!(continued, continued.decimal_value());
+        assert_eq!(continued, r(1, 1));
     }
 }

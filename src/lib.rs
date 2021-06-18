@@ -1,4 +1,3 @@
-/// Contains some helper functions that can be useful.
 pub mod extras;
 
 use extras::gcd;
