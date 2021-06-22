@@ -59,6 +59,14 @@ impl Rational {
         Some(this)
     }
 
+    pub fn zero() -> Self {
+        Rational::new(0, 1)
+    }
+
+    pub fn one() -> Self {
+        Rational::new(1, 1)
+    }
+
     /// Get the numerator in this `Rational`.
     ///
     /// ## Example

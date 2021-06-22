@@ -58,13 +58,54 @@ pub fn continued_fraction(init: u64, cont: &[u64]) -> Rational {
     r + init
 }
 
+pub fn continued_fraction_iter(init: u64, cont: &[u64]) -> ContinuedFractionIter {
+    ContinuedFractionIter::new(Rational::new(init, 1), cont)
+}
+
+pub struct ContinuedFractionIter<'a> {
+    init: Rational,
+    fraction: Rational,
+    idx: usize,
+    cont: &'a [u64],
+}
+
+impl<'a> ContinuedFractionIter<'a> {
+    fn new(init: Rational, cont: &'a [u64]) -> Self {
+        Self {
+            init,
+            fraction: Rational::zero(),
+            idx: 0,
+            cont,
+        }
+    }
+
+    pub fn decimals(self) -> impl Iterator<Item = f64> + 'a {
+        self.map(|r| r.decimal_value())
+    }
+}
+
+impl Iterator for ContinuedFractionIter<'_> {
+    type Item = Rational;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.idx == self.cont.len() {
+            None
+        } else {
+            let curr = self.init + self.fraction;
+            self.fraction = Rational::new(1, self.fraction + self.cont[self.idx]);
+            self.idx += 1;
+            Some(curr)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn gcd_test() {
-        let eq = |a: i128, b: i128, g: i128| assert_eq!(gcd(a, b), g);
+        let eq = |a: i128, b: i128, g: i128| assert_eq!(gcd(a, b), g, "a: {}, b: {}", a, b);
         eq(1, 2, 1);
         eq(5, 4, 1);
         eq(12, 4, 4);
@@ -73,35 +114,52 @@ mod tests {
 
     #[test]
     fn repeated_test() {
-        let continued = continued_fraction(1, &[2; 15]);
+        use std::f64::consts::*;
+        let assert = |init: u64, cont: &[u64], expected: f64| {
+            let actual = continued_fraction(init, cont).decimal_value();
+            assert!(
+                (actual - expected).abs() < 0.000000001,
+                "actual: {}, expected: {}",
+                actual,
+                expected
+            );
+        };
 
-        dbg!(continued, continued.decimal_value());
-
-        assert!((continued.decimal_value() - 2.0_f64.sqrt()).abs() < 0.00000001);
-
-        let continued = continued_fraction(1, &[1; 100]);
-
-        dbg!(continued, continued.decimal_value());
-
-        assert!((continued.decimal_value() - 1.6180339887498).abs() < 0.00001);
-
-        let continued = continued_fraction(
-            4,
-            &[
-                2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8, 2, 1, 3, 1,
-                2, 8, 2, 1, 3, 1, 2, 8,
-            ],
-        );
-
-        dbg!(continued, continued.decimal_value(), 19.0_f64.sqrt());
-
-        assert!((continued.decimal_value() - 19.0_f64.sqrt()).abs() < 0.00001);
+        assert(1, &[2; 15], 2.0_f64.sqrt());
+        assert(1, &[1; 100], 1.6180339887498);
+        assert(4, &[2, 1, 3, 1, 2, 8, 2, 1, 3, 1, 2, 8], 19.0_f64.sqrt());
+        assert(1, &[], 1.0);
+        assert(4, &[], 4.0);
+        assert(2, &[1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10], E);
+        assert(3, &[7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1], PI);
     }
 
     #[test]
-    fn empty_continued_fraction_test() {
-        let continued = continued_fraction(1, &[]);
-        dbg!(continued, continued.decimal_value());
-        assert_eq!(continued, r(1, 1));
+    fn continued_fraction_iter_test() {
+        let decimal_approx: Vec<_> =
+            continued_fraction_iter(1, &[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+                .decimals()
+                .collect();
+
+        assert_eq!(
+            decimal_approx,
+            [
+                1.0,
+                2.0,
+                1.5,
+                1.6666666666666667,
+                1.6,
+                1.625,
+                1.6153846153846154,
+                1.619047619047619,
+                1.6176470588235294,
+                1.6181818181818182,
+                1.6179775280898876,
+                1.6180555555555556,
+                1.6180257510729614,
+                1.6180371352785146,
+                1.618032786885246,
+            ]
+        );
     }
 }
