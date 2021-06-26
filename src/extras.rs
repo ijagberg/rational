@@ -88,13 +88,26 @@ impl Iterator for ContinuedFractionIter<'_> {
     type Item = Rational;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx == self.cont.len() {
-            None
+        if self.cont.is_empty() {
+            if self.idx == 0 {
+                self.idx += 1;
+                Some(self.init)
+            } else {
+                None
+            }
         } else {
-            let curr = self.init + self.fraction;
-            self.fraction = Rational::new(1, self.fraction + self.cont[self.idx]);
-            self.idx += 1;
-            Some(curr)
+            if self.idx > self.cont.len() {
+                None
+            } else if self.idx == self.cont.len() {
+                self.idx += 1;
+                Some(self.init + self.fraction)
+            } else {
+                let curr = self.init + self.fraction;
+                self.fraction =
+                    Rational::new(1, self.fraction + self.cont[self.cont.len() - self.idx - 1]);
+                self.idx += 1;
+                Some(curr)
+            }
         }
     }
 }
@@ -136,29 +149,21 @@ mod tests {
 
     #[test]
     fn continued_fraction_iter_test() {
-        let decimal_approx: Vec<_> =
-            continued_fraction_iter(1, &[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-                .decimals()
-                .collect();
-
+        let decimal_approx: Vec<_> = continued_fraction_iter(2, &[1, 2, 1, 1, 4, 1, 1, 6])
+            .decimals()
+            .collect();
         assert_eq!(
             decimal_approx,
-            [
-                1.0,
+            vec![
                 2.0,
-                1.5,
-                1.6666666666666667,
-                1.6,
-                1.625,
-                1.6153846153846154,
-                1.619047619047619,
-                1.6176470588235294,
-                1.6181818181818182,
-                1.6179775280898876,
-                1.6180555555555556,
-                1.6180257510729614,
-                1.6180371352785146,
-                1.618032786885246,
+                2.1666666666666665,
+                2.857142857142857,
+                2.5384615384615383,
+                2.2203389830508473,
+                2.8194444444444446,
+                2.549618320610687,
+                2.3922155688622753,
+                2.718279569892473,
             ]
         );
     }
