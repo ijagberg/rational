@@ -1,10 +1,8 @@
 pub mod extras;
+mod ops;
 
 use extras::gcd;
-use std::{
-    fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
-};
+use std::fmt::Display;
 
 /// A rational number (a fraction of two integers).
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
@@ -72,9 +70,9 @@ impl Rational {
     {
         let fract = Rational::from(fract);
         if whole.is_negative() {
-            Sub::<Rational>::sub(Rational::integer(whole), fract)
+            Rational::integer(whole) - fract
         } else {
-            Add::<Rational>::add(Rational::integer(whole), fract)
+            Rational::integer(whole) + fract
         }
     }
 
@@ -292,137 +290,6 @@ where
     }
 }
 
-impl<T> Rem<T> for Rational
-where
-    Rational: From<T>,
-{
-    type Output = Self;
-
-    fn rem(self, rhs: T) -> Self::Output {
-        let rhs = Rational::from(rhs);
-        let div = Div::<Rational>::div(self, rhs);
-        let (_, fract) = div.mixed_fraction();
-
-        Mul::<Rational>::mul(fract, rhs)
-    }
-}
-
-impl<T> RemAssign<T> for Rational
-where
-    Rational: From<T>,
-{
-    fn rem_assign(&mut self, rhs: T) {
-        let result = *self % rhs;
-        *self = result;
-    }
-}
-
-impl<T> Div<T> for Rational
-where
-    Rational: From<T>,
-{
-    type Output = Self;
-
-    fn div(self, rhs: T) -> Self::Output {
-        let rhs = Rational::from(rhs);
-        Rational::new::<Rational, Rational>(self, rhs)
-    }
-}
-
-impl<T> DivAssign<T> for Rational
-where
-    Rational: From<T>,
-{
-    fn div_assign(&mut self, rhs: T) {
-        let result = *self / rhs;
-        *self = result;
-    }
-}
-
-impl<T> Mul<T> for Rational
-where
-    Rational: From<T>,
-{
-    type Output = Self;
-
-    fn mul(self, rhs: T) -> Self::Output {
-        let rhs = Rational::from(rhs);
-        let num_den_gcd = gcd(self.numerator, rhs.denominator);
-        let den_num_gcd = gcd(self.denominator, rhs.numerator);
-        let numerator = (self.numerator / num_den_gcd) * (rhs.numerator / den_num_gcd);
-        let denominator = (self.denominator / den_num_gcd) * (rhs.denominator / num_den_gcd);
-
-        Rational::new::<i128, i128>(numerator, denominator)
-    }
-}
-
-impl<T> MulAssign<T> for Rational
-where
-    Rational: From<T>,
-{
-    fn mul_assign(&mut self, rhs: T) {
-        let result = *self * rhs;
-        *self = result;
-    }
-}
-
-impl<T> Add<T> for Rational
-where
-    Rational: From<T>,
-{
-    type Output = Self;
-
-    fn add(self, rhs: T) -> Self::Output {
-        let rhs = Rational::from(rhs);
-        let denominator = self.denominator * rhs.denominator;
-
-        Rational::new::<i128, i128>(
-            self.numerator * rhs.denominator + rhs.numerator * self.denominator,
-            denominator,
-        )
-    }
-}
-
-impl<T> AddAssign<T> for Rational
-where
-    Rational: From<T>,
-{
-    fn add_assign(&mut self, rhs: T) {
-        let result = *self + rhs;
-        *self = result;
-    }
-}
-
-impl<T> Sub<T> for Rational
-where
-    Rational: From<T>,
-{
-    type Output = Self;
-
-    fn sub(self, rhs: T) -> Self::Output {
-        let rhs = Rational::from(rhs);
-        Add::<Rational>::add(self, Neg::neg(rhs))
-    }
-}
-
-impl<T> SubAssign<T> for Rational
-where
-    Rational: From<T>,
-{
-    fn sub_assign(&mut self, rhs: T) {
-        let result = *self - rhs;
-        *self = result;
-    }
-}
-
-impl Neg for Rational {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        self * -1
-    }
-}
-
 impl Eq for Rational {}
 
 impl Ord for Rational {
@@ -465,52 +332,6 @@ mod tests {
     use crate::extras::*;
     use rand;
     use std::collections::HashMap;
-
-    #[test]
-    fn addition_test() {
-        let left = Rational::new(1, 2);
-
-        assert_eq!(left + Rational::new(3, 1), Rational::new(7, 2));
-        assert_eq!(left + 10_u8, Rational::new(21, 2));
-        assert_eq!(left + 217_u16, Rational::new(435, 2));
-
-        let mut left = r(1, 2);
-        left += 5;
-        assert_eq!(left, r(11, 2));
-        left += r(1, 2);
-        assert_eq!(left, r(6, 1));
-    }
-
-    #[test]
-    fn subtraction_test() {
-        let left = Rational::new(4, 3);
-        let right = Rational::new(1, 2);
-        assert_eq!(left - right, Rational::new(5, 6))
-    }
-
-    #[test]
-    fn multiplication_test() {
-        let left = Rational::new(5, 9);
-        let right = Rational::new(10, 31);
-        assert_eq!(left * right, Rational::new(50, 279));
-
-        let left = Rational::new(-5, 10);
-        let right = Rational::new(100, 10);
-        assert_eq!(left * right, Rational::new(-5, 1));
-    }
-
-    #[test]
-    fn division_test() {
-        let left = Rational::new(5, 9);
-        let right = Rational::new(10, 31);
-        assert_eq!(left / right, Rational::new(31, 18));
-    }
-
-    #[test]
-    fn negation_test() {
-        let rat = r(5, 9);
-        assert_eq!(-rat, r(-5, 9));
-    }
 
     #[test]
     fn equality_test() {
@@ -635,22 +456,6 @@ mod tests {
     fn from_mixed_test() {
         assert_eq!(Rational::from_mixed(3, (1, 2)), Rational::new(7, 2));
         assert_eq!(Rational::from_mixed(0, (1, 2)), Rational::new(1, 2));
-    }
-
-    #[test]
-    fn rem_test() {
-        let assert = |(n1, d1): (i128, i128), (n2, d2): (i128, i128), (num, den): (i128, i128)| {
-            let r1 = Rational::new(n1, d1);
-            let r2 = Rational::new(n2, d2);
-            let actual_rem = r1 % r2;
-            let expected_rem = Rational::new(num, den);
-            assert_eq!(actual_rem, expected_rem);
-        };
-
-        assert((1, 4), (1, 2), (1, 4));
-        assert((1, 3), (1, 4), (1, 12));
-        assert((6, 1), (2, 1), (0, 1));
-        // assert(-1, 3, 1, 4, (1, 6)); // TODO: Negative numbers don't work properly
     }
 
     fn random_rat() -> Rational {
