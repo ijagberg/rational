@@ -3,7 +3,7 @@ pub mod extras;
 use extras::gcd;
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
 
 /// A rational number (a fraction of two integers).
@@ -59,12 +59,35 @@ impl Rational {
         Some(this)
     }
 
+    /// Create a `Rational` from a mixed fraction.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert_eq!(Rational::from_mixed(1, (1, 2)), Rational::new(3, 2));
+    /// ```
+    pub fn from_mixed<T>(whole: i128, fract: T) -> Rational
+    where
+        Rational: From<T>,
+    {
+        let fract = Rational::from(fract);
+        if whole.is_negative() {
+            Sub::<Rational>::sub(Rational::integer(whole), fract)
+        } else {
+            Add::<Rational>::add(Rational::integer(whole), fract)
+        }
+    }
+
+    pub fn integer(n: i128) -> Self {
+        Rational::new(n, 1)
+    }
+
     pub fn zero() -> Self {
-        Rational::new(0, 1)
+        Rational::integer(0)
     }
 
     pub fn one() -> Self {
-        Rational::new(1, 1)
+        Rational::integer(1)
     }
 
     /// Get the numerator in this `Rational`.
@@ -180,6 +203,51 @@ impl Rational {
         Some(Self::new::<i128, i128>(numerator, denominator))
     }
 
+    /// Returns `true` if `self` is an integer.
+    /// This is a shorthand for `self.denominator() == 1`.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert!(Rational::new(2, 1).is_integer());
+    /// assert!(!Rational::new(1, 2).is_integer());
+    /// ```
+    pub fn is_integer(&self) -> bool {
+        self.denominator() == 1
+    }
+
+    /// Returns `true` if `self` is negative.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert!(Rational::new(-1, 2).is_negative());
+    /// assert!(Rational::new(1, -2).is_negative());
+    /// assert!(!Rational::new(1, 2).is_negative());
+    /// ```
+    pub fn is_negative(&self) -> bool {
+        self.numerator().is_negative()
+    }
+
+    /// Returns a tuple representing `self` as a [mixed fraction](https://en.wikipedia.org/wiki/Fraction#Mixed_numbers).
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert_eq!(Rational::new(7, 3).mixed_fraction(), (2, Rational::new(1, 3)));
+    /// // the fractional part is always positive:
+    /// assert_eq!(Rational::new(-3, 2).mixed_fraction(), (-1, Rational::new(1, 2)));
+    /// ```
+    pub fn mixed_fraction(self) -> (i128, Rational) {
+        let rem = self.numerator() % self.denominator();
+        let whole = self.numerator() / self.denominator();
+        let mut fract = Rational::new(rem, self.denominator());
+        if whole.is_negative() && fract.is_negative() {
+            fract = -fract;
+        }
+        (whole, fract)
+    }
+
     fn reduce(&mut self) {
         let gcd = gcd(self.numerator, self.denominator);
         self.numerator /= gcd;
@@ -221,6 +289,31 @@ where
         let d = Rational::from(d);
 
         Rational::new(n, d)
+    }
+}
+
+impl<T> Rem<T> for Rational
+where
+    Rational: From<T>,
+{
+    type Output = Self;
+
+    fn rem(self, rhs: T) -> Self::Output {
+        let rhs = Rational::from(rhs);
+        let div = Div::<Rational>::div(self, rhs);
+        let (_, fract) = div.mixed_fraction();
+
+        Mul::<Rational>::mul(fract, rhs)
+    }
+}
+
+impl<T> RemAssign<T> for Rational
+where
+    Rational: From<T>,
+{
+    fn rem_assign(&mut self, rhs: T) {
+        let result = *self % rhs;
+        *self = result;
     }
 }
 
@@ -515,6 +608,49 @@ mod tests {
         rat.set_denominator(4);
 
         assert_eq!(rat, Rational::new(1, 2));
+    }
+
+    #[test]
+    fn mixed_fraction_test() {
+        let assert = |num: i128, den: i128, whole: i128, (n, d): (i128, i128)| {
+            let rat = Rational::new(num, den);
+            let actual_mixed_fraction = rat.mixed_fraction();
+            let expected_mixed_fraction = (whole, Rational::new(n, d));
+            assert_eq!(
+                actual_mixed_fraction,
+                (whole, Rational::new(n, d)),
+                "num: {}, den: {}",
+                num,
+                den
+            );
+        };
+
+        assert(4, 3, 1, (1, 3));
+        assert(4, 4, 1, (0, 1));
+        assert(-3, 2, -1, (1, 2));
+        assert(10, 6, 1, (2, 3));
+    }
+
+    #[test]
+    fn from_mixed_test() {
+        assert_eq!(Rational::from_mixed(3, (1, 2)), Rational::new(7, 2));
+        assert_eq!(Rational::from_mixed(0, (1, 2)), Rational::new(1, 2));
+    }
+
+    #[test]
+    fn rem_test() {
+        let assert = |(n1, d1): (i128, i128), (n2, d2): (i128, i128), (num, den): (i128, i128)| {
+            let r1 = Rational::new(n1, d1);
+            let r2 = Rational::new(n2, d2);
+            let actual_rem = r1 % r2;
+            let expected_rem = Rational::new(num, den);
+            assert_eq!(actual_rem, expected_rem);
+        };
+
+        assert((1, 4), (1, 2), (1, 4));
+        assert((1, 3), (1, 4), (1, 12));
+        assert((6, 1), (2, 1), (0, 1));
+        // assert(-1, 3, 1, 4, (1, 6)); // TODO: Negative numbers don't work properly
     }
 
     fn random_rat() -> Rational {

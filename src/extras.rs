@@ -34,6 +34,10 @@ pub fn gcd(mut a: i128, mut b: i128) -> i128 {
     a
 }
 
+pub fn is_coprime(l: i128, r: i128) -> bool {
+    gcd(l, r) == 1
+}
+
 /// Create a [continued fraction](https://en.wikipedia.org/wiki/Continued_fraction#Motivation_and_notation).
 ///
 /// ## Notes
