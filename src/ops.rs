@@ -140,7 +140,6 @@ mod sub {
         type Output = Rational;
 
         fn sub(self, rhs: Rational) -> Rational {
-            let rhs = Rational::from(rhs);
             Add::<Rational>::add(self, Neg::neg(rhs))
         }
     }
@@ -198,7 +197,6 @@ mod div {
         type Output = Self;
 
         fn div(self, rhs: Rational) -> Self::Output {
-            let rhs = Rational::from(rhs);
             Rational::new::<Rational, Rational>(self, rhs)
         }
     }

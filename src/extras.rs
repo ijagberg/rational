@@ -99,19 +99,17 @@ impl Iterator for ContinuedFractionIter<'_> {
             } else {
                 None
             }
+        } else if self.idx > self.cont.len() {
+            None
+        } else if self.idx == self.cont.len() {
+            self.idx += 1;
+            Some(self.init + self.fraction)
         } else {
-            if self.idx > self.cont.len() {
-                None
-            } else if self.idx == self.cont.len() {
-                self.idx += 1;
-                Some(self.init + self.fraction)
-            } else {
-                let curr = self.init + self.fraction;
-                self.fraction =
-                    Rational::new(1, self.fraction + self.cont[self.cont.len() - self.idx - 1]);
-                self.idx += 1;
-                Some(curr)
-            }
+            let curr = self.init + self.fraction;
+            self.fraction =
+                Rational::new(1, self.fraction + self.cont[self.cont.len() - self.idx - 1]);
+            self.idx += 1;
+            Some(curr)
         }
     }
 }
