@@ -76,14 +76,23 @@ impl Rational {
         }
     }
 
+    /// Shorthand for creating an integer `Rational`, eg. 5/1.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::integer(5), Rational::new(5, 1));
+    /// ```
     pub fn integer(n: i128) -> Self {
         Rational::new(n, 1)
     }
 
+    /// Shorthand for 0/1.
     pub fn zero() -> Self {
         Rational::integer(0)
     }
 
+    /// Shorthand for 1/1.
     pub fn one() -> Self {
         Rational::integer(1)
     }
@@ -290,6 +299,12 @@ where
     }
 }
 
+impl From<Rational> for (i128, i128) {
+    fn from(r: Rational) -> Self {
+        (r.numerator(), r.denominator())
+    }
+}
+
 impl Eq for Rational {}
 
 impl Ord for Rational {
@@ -314,7 +329,7 @@ impl PartialOrd for Rational {
 
 impl From<Rational> for f64 {
     fn from(rat: Rational) -> f64 {
-        (rat.numerator as f64) / (rat.denominator as f64)
+        (rat.numerator() as f64) / (rat.denominator() as f64)
     }
 }
 
@@ -476,6 +491,13 @@ mod tests {
     fn from_mixed_test() {
         assert_eq!(Rational::from_mixed(3, (1, 2)), Rational::new(7, 2));
         assert_eq!(Rational::from_mixed(0, (1, 2)), Rational::new(1, 2));
+    }
+
+    #[test]
+    fn tuple_from_rational_test() {
+        assert_eq!((1, 5), Rational::new(1, 5).into());
+        assert_eq!((1, 5), Rational::new(2, 10).into());
+        assert_eq!((-1, 5), Rational::new(2, -10).into());
     }
 
     fn random_rat() -> Rational {
