@@ -333,23 +333,43 @@ mod tests {
     use rand;
     use std::collections::HashMap;
 
+    fn assert_eq_rat<Actual, Expected>(actual: Actual, expected: Expected)
+    where
+        Rational: From<Actual>,
+        Rational: From<Expected>,
+    {
+        let actual = Rational::from(actual);
+        let expected = Rational::from(expected);
+        assert_eq!(actual, expected);
+    }
+
+    fn assert_ne_rat<Actual, Expected>(actual: Actual, expected: Expected)
+    where
+        Rational: From<Actual>,
+        Rational: From<Expected>,
+    {
+        let actual = Rational::from(actual);
+        let expected = Rational::from(expected);
+        assert_ne!(actual, expected);
+    }
+
     #[test]
     fn equality_test() {
-        let left = Rational::new(4, 8);
-        let right = Rational::new(16, 32);
-        assert_eq!(left, right);
+        assert_eq_rat((4, 8), (16, 32));
+        assert_eq_rat((2, 3), (4, 6));
+        assert_ne_rat((-1, 2), (1, 2));
     }
 
     #[test]
     fn ctor_test() {
-        let rat = Rational::new(Rational::new(1, 2), Rational::new(2, 4));
-        assert_eq!(rat, Rational::new(1, 1));
+        let rat = Rational::new((1, 2), (2, 4));
+        assert_eq_rat(rat, (1, 1));
 
-        let rat = Rational::new(Rational::new(1, 2), 3);
-        assert_eq!(rat, Rational::new(1, 6));
+        let rat = Rational::new((1, 2), 3);
+        assert_eq_rat(rat, (1, 6));
 
         let rat = Rational::new((1, 2), (2, 1));
-        assert_eq!(rat, Rational::new(1, 4));
+        assert_eq_rat(rat, (1, 4));
 
         let invalid = Rational::new_checked(1, 0);
         assert!(invalid.is_none());
@@ -358,7 +378,7 @@ mod tests {
     #[test]
     fn inverse_test() {
         let inverse = Rational::new(5, 7).inverse();
-        assert_eq!(inverse, Rational::new(7, 5));
+        assert_eq_rat(inverse, (7, 5));
 
         let invalid_inverse = Rational::new(0, 1);
         assert!(invalid_inverse.inverse_checked().is_none());
