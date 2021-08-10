@@ -58,5 +58,5 @@ fn assert_sequence(start: Rational, exp: u32, c: Rational, expected: &[Rational]
 }
 
 fn next(z: Rational, exp: u32, c: Rational) -> Rational {
-    z.pow(exp) + c
+    z.pow(exp as i32) + c
 }

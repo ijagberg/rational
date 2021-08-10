@@ -210,8 +210,25 @@ impl Rational {
         Some(Self::new::<i128, i128>(numerator, denominator))
     }
 
-    pub fn pow(self, exp: u32) -> Rational {
-        Rational::new(self.numerator().pow(exp), self.denominator().pow(exp))
+    /// Raises self to the power of `exp`. 
+    ///
+    /// Unlike the `pow` methods in `std`, this supports negative exponents, returning the inverse of the result.
+    /// The exponent still needs to be an integer, since a rational number raised to the power of another rational number may be irrational.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert_eq!(Rational::new(2, 3).pow(2), Rational::new(4, 9));
+    /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
+    /// ```
+    pub fn pow(self, exp: i32) -> Rational {
+        let abs = exp.abs() as u32;
+        let result = Rational::new(self.numerator().pow(abs), self.denominator().pow(abs));
+        if exp.is_negative() {
+            result.inverse()
+        } else {
+            result
+        }
     }
 
     /// Returns `true` if `self` is an integer.
@@ -508,6 +525,8 @@ mod tests {
     fn pow_test() {
         assert_eq!((1, 25), Rational::new(1, 5).pow(2).into());
         assert_eq!((1, 9), Rational::new(2, 6).pow(2).into());
+        assert_eq!((1, 1), Rational::new(2, 6).pow(0).into());
+        assert_eq!((16, 1), Rational::new(1, 4).pow(-2).into());
     }
 
     fn random_rat() -> Rational {
