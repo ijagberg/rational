@@ -116,7 +116,7 @@ impl Rational {
     /// # use rational::Rational;
     /// let mut r = Rational::new(4, 5);
     /// r.set_numerator(10);
-    /// assert_eq!(r, Rational::new(2, 1));
+    /// assert_eq!(r, Rational::new(2, 1)); // 10/5 reduces to 2/1
     /// ```
     pub fn set_numerator(&mut self, numerator: i128) {
         self.numerator = numerator;
@@ -208,6 +208,10 @@ impl Rational {
         let numerator = self.numerator.checked_mul(other.denominator)?;
         let denominator = self.denominator.checked_mul(other.numerator)?;
         Some(Self::new::<i128, i128>(numerator, denominator))
+    }
+
+    pub fn pow(self, exp: u32) -> Rational {
+        Rational::new(self.numerator().pow(exp), self.denominator().pow(exp))
     }
 
     /// Returns `true` if `self` is an integer.
@@ -498,6 +502,12 @@ mod tests {
         assert_eq!((1, 5), Rational::new(1, 5).into());
         assert_eq!((1, 5), Rational::new(2, 10).into());
         assert_eq!((-1, 5), Rational::new(2, -10).into());
+    }
+
+    #[test]
+    fn pow_test() {
+        assert_eq!((1, 25), Rational::new(1, 5).pow(2).into());
+        assert_eq!((1, 9), Rational::new(2, 6).pow(2).into());
     }
 
     fn random_rat() -> Rational {
