@@ -1,6 +1,6 @@
 use rational::Rational;
 
-//example taken from [https://www.youtube.com/watch?v=N92w4e-hrA4](this Youtube video)
+/// example taken from [this YouTube video](https://www.youtube.com/watch?v=N92w4e-hrA4)
 fn main() {
     assert_sequence(
         Rational::new(0, 1),
