@@ -259,14 +259,17 @@ impl Rational {
 
     /// Returns a tuple representing `self` as a [mixed fraction](https://en.wikipedia.org/wiki/Fraction#Mixed_numbers).
     ///
+    /// ## Notes
+    /// The result is a tuple `(whole: i128, fraction: Rational)`, such that `whole + fraction == self`. 
+    /// This means that while you might write -7/2 as a mixed fraction: -3½, the result will be a tuple (-3, -1/2).
+    ///
     /// ## Example
     /// ```rust
     /// # use rational::*;
     /// assert_eq!(Rational::new(7, 3).mixed_fraction(), (2, Rational::new(1, 3)));
-    /// // the result is such that adding the two parts together will result in the original value:
-    /// let (mixed, fract) = Rational::new(-3, 2).mixed_fraction();
-    /// assert_eq!((mixed, fract), (-1, Rational::new(-1, 2)));
-    /// assert_eq!(mixed + fract, Rational::new(-3, 2));
+    /// let (mixed, fract) = Rational::new(-7, 2).mixed_fraction();
+    /// assert_eq!((mixed, fract), (-3, Rational::new(-1, 2)));
+    /// assert_eq!(mixed + fract, Rational::new(-7, 2));
     /// ```
     pub fn mixed_fraction(self) -> (i128, Rational) {
         let rem = self.numerator() % self.denominator();
