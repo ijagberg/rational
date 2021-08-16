@@ -210,7 +210,7 @@ impl Rational {
         Some(Self::new::<i128, i128>(numerator, denominator))
     }
 
-    /// Raises self to the power of `exp`. 
+    /// Raises self to the power of `exp`.
     ///
     /// Unlike the `pow` methods in `std`, this supports negative exponents, returning the inverse of the result.
     /// The exponent still needs to be an integer, since a rational number raised to the power of another rational number may be irrational.
@@ -263,16 +263,16 @@ impl Rational {
     /// ```rust
     /// # use rational::*;
     /// assert_eq!(Rational::new(7, 3).mixed_fraction(), (2, Rational::new(1, 3)));
-    /// // the fractional part is always positive:
-    /// assert_eq!(Rational::new(-3, 2).mixed_fraction(), (-1, Rational::new(1, 2)));
+    /// // the result is such that adding the two parts together will result in the original value:
+    /// let (mixed, fract) = Rational::new(-3, 2).mixed_fraction();
+    /// assert_eq!((mixed, fract), (-1, Rational::new(-1, 2)));
+    /// assert_eq!(mixed + fract, Rational::new(-3, 2));
     /// ```
     pub fn mixed_fraction(self) -> (i128, Rational) {
         let rem = self.numerator() % self.denominator();
         let whole = self.numerator() / self.denominator();
-        let mut fract = Rational::new(rem, self.denominator());
-        if whole.is_negative() && fract.is_negative() {
-            fract = -fract;
-        }
+        let fract = Rational::new(rem, self.denominator());
+        debug_assert_eq!(whole + fract, self);
         (whole, fract)
     }
 
@@ -489,10 +489,12 @@ mod tests {
 
     #[test]
     fn mixed_fraction_test() {
-        let assert = |num: i128, den: i128, whole: i128, (n, d): (i128, i128)| {
+        let assert = |(num, den): (i128, i128), whole: i128, (n, d): (i128, i128)| {
             let rat = Rational::new(num, den);
             let actual_mixed_fraction = rat.mixed_fraction();
-            let expected_mixed_fraction = (whole, Rational::new(n, d));
+            let fract = Rational::new(n, d);
+            let expected_mixed_fraction = (whole, fract);
+            let sum_of_parts = whole + fract;
             assert_eq!(
                 actual_mixed_fraction,
                 (whole, Rational::new(n, d)),
@@ -500,12 +502,13 @@ mod tests {
                 num,
                 den
             );
+            assert_eq!(sum_of_parts, rat);
         };
 
-        assert(4, 3, 1, (1, 3));
-        assert(4, 4, 1, (0, 1));
-        assert(-3, 2, -1, (1, 2));
-        assert(10, 6, 1, (2, 3));
+        assert((4, 3), 1, (1, 3));
+        assert((4, 4), 1, (0, 1));
+        assert((-3, 2), -1, (-1, 2));
+        assert((10, 6), 1, (2, 3));
     }
 
     #[test]
