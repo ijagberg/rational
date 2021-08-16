@@ -361,15 +361,14 @@ impl Display for Rational {
 }
 
 #[cfg(test)]
+#[allow(unused)]
 mod tests {
-    #![allow(unused)]
-
     use super::*;
     use crate::extras::*;
     use rand;
     use std::collections::HashMap;
 
-    fn assert_eq_rat<Actual, Expected>(actual: Actual, expected: Expected)
+    fn assert_eq_rational<Actual, Expected>(actual: Actual, expected: Expected)
     where
         Rational: From<Actual>,
         Rational: From<Expected>,
@@ -391,30 +390,36 @@ mod tests {
 
     #[test]
     fn equality_test() {
-        assert_eq_rat((4, 8), (16, 32));
-        assert_eq_rat((2, 3), (4, 6));
+        assert_eq_rational((4, 8), (16, 32));
+        assert_eq_rational((2, 3), (4, 6));
         assert_ne_rat((-1, 2), (1, 2));
     }
 
     #[test]
     fn ctor_test() {
-        let rat = Rational::new((1, 2), (2, 4));
-        assert_eq_rat(rat, (1, 1));
+        let r = Rational::new((1, 2), (2, 4));
+        assert_eq_rational(r, (1, 1));
 
-        let rat = Rational::new((1, 2), 3);
-        assert_eq_rat(rat, (1, 6));
+        let r = Rational::new((1, 2), 3);
+        assert_eq_rational(r, (1, 6));
 
-        let rat = Rational::new((1, 2), (2, 1));
-        assert_eq_rat(rat, (1, 4));
+        let r = Rational::new((1, 2), (2, 1));
+        assert_eq_rational(r, (1, 4));
 
         let invalid = Rational::new_checked(1, 0);
         assert!(invalid.is_none());
+
+        let r = Rational::new(0, 5);
+        assert_eq_rational(r, (0, 1));
+
+        let r = Rational::new(0, -100);
+        assert_eq_rational(r, (0, 1));
     }
 
     #[test]
     fn inverse_test() {
         let inverse = Rational::new(5, 7).inverse();
-        assert_eq_rat(inverse, (7, 5));
+        assert_eq_rational(inverse, (7, 5));
 
         let invalid_inverse = Rational::new(0, 1);
         assert!(invalid_inverse.inverse_checked().is_none());
@@ -461,17 +466,6 @@ mod tests {
     }
 
     #[test]
-    fn fuzz_test() {
-        // for _ in 0..500_000 {
-        //     let (a, b) = (random_rat(), random_rat());
-        //     assert_eq!(
-        //         a.partial_cmp(&b),
-        //         a.decimal_value().partial_cmp(&b.decimal_value())
-        //     );
-        // }
-    }
-
-    #[test]
     fn set_denominator_test() {
         let mut rat = Rational::new(1, 6);
         rat.set_numerator(2);
@@ -509,6 +503,7 @@ mod tests {
         assert((4, 4), 1, (0, 1));
         assert((-3, 2), -1, (-1, 2));
         assert((10, 6), 1, (2, 3));
+        assert((0, 2), 0, (0, 1));
     }
 
     #[test]
