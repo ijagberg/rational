@@ -63,17 +63,14 @@ impl Rational {
     /// ```rust
     /// # use rational::*;
     /// assert_eq!(Rational::from_mixed(1, (1, 2)), Rational::new(3, 2));
+    /// assert_eq!(Rational::from_mixed(-1, (-1, 2)), Rational::new(-3, 2));
     /// ```
     pub fn from_mixed<T>(whole: i128, fract: T) -> Rational
     where
         Rational: From<T>,
     {
         let fract = Rational::from(fract);
-        if whole.is_negative() {
-            Rational::integer(whole) - fract
-        } else {
-            Rational::integer(whole) + fract
-        }
+        Rational::integer(whole) + fract
     }
 
     /// Shorthand for creating an integer `Rational`, eg. 5/1.
