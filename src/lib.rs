@@ -209,8 +209,12 @@ impl Rational {
 
     /// Raises self to the power of `exp`.
     ///
+    /// ## Notes
     /// Unlike the `pow` methods in `std`, this supports negative exponents, returning the inverse of the result.
     /// The exponent still needs to be an integer, since a rational number raised to the power of another rational number may be irrational.
+    ///
+    /// ## Panics
+    /// * If the numerator is 0 and `exp` is negative (since a negative exponent will result in an inversed fraction).
     ///
     /// ## Example
     /// ```rust
