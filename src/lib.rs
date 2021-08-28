@@ -362,7 +362,7 @@ impl Ord for Rational {
                         return Ordering::Less;
                     }
                     (false, true) => {
-                        // right remainedr is 0, so right is smaller than left
+                        // right remainder is 0, so right is smaller than left
                         return Ordering::Greater;
                     }
                     (false, false) => {
