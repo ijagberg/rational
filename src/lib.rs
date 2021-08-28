@@ -251,6 +251,21 @@ impl Rational {
         }
     }
 
+    /// Computes the absolute value of `self`.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert_eq!(Rational::new(-5, 3).abs(), Rational::new(5, 3));
+    /// ```
+    pub fn abs(self) -> Rational {
+        // not using 'construct' since we know neither numerator or denominator will be negative
+        Rational {
+            numerator: self.numerator.abs(),
+            denominator: self.denominator,
+        }
+    }
+
     /// Returns `true` if `self` is an integer.
     /// This is a shorthand for `self.denominator() == 1`.
     ///

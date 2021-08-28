@@ -254,10 +254,17 @@ mod rem {
         type Output = Self;
 
         fn rem(self, rhs: Rational) -> Self::Output {
-            let div = Div::<Rational>::div(self, rhs);
-            let (_, fract) = div.mixed_fraction();
+            let neg = self.is_negative();
+            let a = if neg { self.abs() } else { self };
+            let b = rhs.abs();
+            let div = Div::<Rational>::div(a, b);
+            let (_, mut fract) = div.mixed_fraction();
 
-            Mul::<Rational>::mul(fract, rhs)
+            if neg {
+                fract = -fract;
+            }
+
+            Mul::<Rational>::mul(fract, b)
         }
     }
 
@@ -398,6 +405,11 @@ mod tests {
         assert((1, 4), (1, 2), (1, 4));
         assert((1, 3), (1, 4), (1, 12));
         assert((6, 1), (2, 1), (0, 1));
-        // assert(-1, 3, 1, 4, (1, 6)); // TODO: Negative numbers don't work properly
+
+        // assert_eq!((-0.5) % (-0.2), 1.0);
+        assert_eq!(
+            (Rational::new(-1, 5) % Rational::new(1, 4)).decimal_value(),
+            (-0.2) % (0.25)
+        );
     }
 }
