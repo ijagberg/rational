@@ -479,6 +479,10 @@ mod tests {
 
         let invalid_inverse = Rational::new(0, 1);
         assert!(invalid_inverse.inverse_checked().is_none());
+
+        let inverse = Rational::new(-5, 7).inverse();
+        assert_eq!(inverse.numerator(), -7);
+        assert_eq!(inverse.denominator(), 5);
     }
 
     #[test]
