@@ -148,7 +148,22 @@ impl Rational {
 
     /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0.
     pub fn inverse_checked(self) -> Option<Self> {
-        Self::new_checked(1, self)
+        if self.numerator() == 0 {
+            None
+        } else {
+            let (num, den) = if self.numerator().is_negative() {
+                (-self.denominator(), -self.numerator())
+            } else {
+                (self.denominator(), self.numerator())
+            };
+            // since all rationals are automatically reduced,
+            // we can just swap the numerator and denominator
+            // without calculating their GCD's again
+            Some(Rational {
+                numerator: num,
+                denominator: den,
+            })
+        }
     }
 
     /// Returns the inverse of this `Rational`.
@@ -156,17 +171,8 @@ impl Rational {
     /// ## Panics
     /// * If the numerator is 0, since then the inverse will be divided by 0.
     pub fn inverse(self) -> Self {
-        if self.numerator() == 0 {
-            panic!("can't take the inverse of 0");
-        }
-
-        // since all rationals are automatically reduced,
-        // we can just swap the numerator and denominator
-        // without calculating their GCD's again
-        Rational {
-            numerator: self.denominator(),
-            denominator: self.numerator(),
-        }
+        self.inverse_checked()
+            .expect("can't take the inverse when numerator is 0")
     }
 
     /// Returns the decimal value of this `Rational`.
@@ -346,6 +352,16 @@ impl Ord for Rational {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         use std::cmp::Ordering;
 
+        // simple test, if one of the numbers is negative and the other one is positive,
+        // no algorithm is needed
+        match (self.is_negative(), other.is_negative()) {
+            (true, false) => {
+                return Ordering::Less;
+            }
+            (false, true) => return Ordering::Greater,
+            _ => (),
+        }
+
         let mut a = *self;
         let mut b = *other;
         loop {
@@ -450,6 +466,10 @@ mod tests {
 
         let r = Rational::new(0, -100);
         assert_eq_rational(r, (0, 1));
+
+        let r = Rational::new(5, -2);
+        assert_eq!(r.numerator, -5);
+        assert_eq!(r.denominator, 2);
     }
 
     #[test]
@@ -473,6 +493,20 @@ mod tests {
         assert((-11, 2), (5, 4), Ordering::Less);
         assert((5, 4), (20, 16), Ordering::Equal);
         assert((7, 4), (14, 11), Ordering::Greater);
+        assert((-1, 2), (1, -2), Ordering::Equal);
+
+        for n in 0..100_000 {
+            let r1 = random_rat();
+            let r2 = random_rat();
+            let result1 = r1.cmp(&r2);
+            let result2 = r1.decimal_value().partial_cmp(&r2.decimal_value()).unwrap();
+
+            assert_eq!(
+                result1, result2,
+                "r1: {}, r2: {}, result1: {:?}, result2: {:?}, n: {}",
+                r1, r2, result1, result2, n
+            );
+        }
     }
 
     #[test]
