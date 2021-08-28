@@ -154,9 +154,19 @@ impl Rational {
     /// Returns the inverse of this `Rational`.
     ///
     /// ## Panics
-    /// * If the denominator of the inverse is 0.
+    /// * If the numerator is 0, since then the inverse will be divided by 0.
     pub fn inverse(self) -> Self {
-        Self::new(1, self)
+        if self.numerator() == 0 {
+            panic!("can't take the inverse of 0");
+        }
+
+        // since all rationals are automatically reduced,
+        // we can just swap the numerator and denominator
+        // without calculating their GCD's again
+        Rational {
+            numerator: self.denominator(),
+            denominator: self.numerator(),
+        }
     }
 
     /// Returns the decimal value of this `Rational`.
@@ -334,14 +344,36 @@ impl Eq for Rational {}
 
 impl Ord for Rational {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let num1 = self.numerator.checked_mul(other.denominator);
-        let num2 = self.denominator.checked_mul(other.numerator);
-        match (num1, num2) {
-            (Some(num1), Some(num2)) => num1.cmp(&num2),
-            _ => self
-                .decimal_value()
-                .partial_cmp(&other.decimal_value())
-                .unwrap(),
+        use std::cmp::Ordering;
+
+        let mut a = *self;
+        let mut b = *other;
+        loop {
+            let (q1, r1) = a.mixed_fraction();
+            let (q2, r2) = b.mixed_fraction();
+            match q1.cmp(&q2) {
+                Ordering::Equal => match (r1.numerator() == 0, r2.numerator() == 0) {
+                    (true, true) => {
+                        // both remainders are zero, equal
+                        return Ordering::Equal;
+                    }
+                    (true, false) => {
+                        // left remainder is 0, so left is smaller than right
+                        return Ordering::Less;
+                    }
+                    (false, true) => {
+                        // right remainedr is 0, so right is smaller than left
+                        return Ordering::Greater;
+                    }
+                    (false, false) => {
+                        a = r2.inverse();
+                        b = r1.inverse();
+                    }
+                },
+                other => {
+                    return other;
+                }
+            }
         }
     }
 }
@@ -370,7 +402,7 @@ mod tests {
     use super::*;
     use crate::extras::*;
     use rand;
-    use std::collections::HashMap;
+    use std::{cmp::Ordering, collections::HashMap};
 
     fn assert_eq_rational<Actual, Expected>(actual: Actual, expected: Expected)
     where
@@ -431,9 +463,16 @@ mod tests {
 
     #[test]
     fn ordering_test() {
-        let left = Rational::new(127, 298);
-        let right = Rational::new(10, 11);
-        assert!(left < right);
+        let assert = |(n1, d1): (i128, i128), (n2, d2): (i128, i128), ord: Ordering| {
+            let left = Rational::new(n1, d1);
+            let right = Rational::new(n2, d2);
+            assert_eq!(left.cmp(&right), ord);
+        };
+        assert((127, 298), (10, 11), Ordering::Less);
+        assert((355, 113), (22, 7), Ordering::Less);
+        assert((-11, 2), (5, 4), Ordering::Less);
+        assert((5, 4), (20, 16), Ordering::Equal);
+        assert((7, 4), (14, 11), Ordering::Greater);
     }
 
     #[test]
