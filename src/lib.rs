@@ -14,6 +14,22 @@ pub struct Rational {
 }
 
 impl Rational {
+    fn construct(mut num: i128, mut den: i128) -> Self {
+        if den.is_negative() {
+            // if both are negative, then both should be positive (reduce the -1 factor)
+            // if only the denominator is negative, then move the -1 factor to the numerator for aesthetics
+            num = -num;
+            den = -den;
+        }
+
+        let mut this = Self {
+            numerator: num,
+            denominator: den,
+        };
+        this.reduce();
+        this
+    }
+
     /// Construct a new Rational.
     ///
     /// ## Panics
@@ -35,25 +51,15 @@ impl Rational {
         let numerator = Rational::from(numerator);
         let denominator = Rational::from(denominator);
 
-        let mut num = numerator.numerator * denominator.denominator;
-        let mut den = numerator.denominator * denominator.numerator;
+        let num = numerator.numerator * denominator.denominator;
+        let den = numerator.denominator * denominator.numerator;
 
         if den == 0 {
             return None;
         }
 
-        if den.is_negative() {
-            // if both are negative, then both should be positive (reduce the -1 factor)
-            // if only the denominator is negative, then move the -1 factor to the numerator for aesthetics
-            num = -num;
-            den = -den;
-        }
+        let this = Self::construct(num, den);
 
-        let mut this = Self {
-            numerator: num,
-            denominator: den,
-        };
-        this.reduce();
         Some(this)
     }
 
@@ -159,10 +165,7 @@ impl Rational {
             // since all rationals are automatically reduced,
             // we can just swap the numerator and denominator
             // without calculating their GCD's again
-            Some(Rational {
-                numerator: num,
-                denominator: den,
-            })
+            Some(Self::construct(num, den))
         }
     }
 
