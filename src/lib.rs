@@ -634,6 +634,14 @@ mod tests {
         assert_eq!((16, 1), Rational::new(1, 4).pow(-2).into());
     }
 
+    #[test]
+    fn abs_test() {
+        assert_eq!(Rational::new(0, 5).abs(), Rational::zero());
+        assert_eq!(Rational::new(1, 2).abs(), Rational::new(1, 2));
+        assert_eq!(Rational::new(-1, 2).abs(), Rational::new(1, 2));
+        assert_eq!(Rational::new(1, -2).abs(), Rational::new(1, 2));
+    }
+
     fn random_rat() -> Rational {
         let den = loop {
             // generate a random non-zero integer
