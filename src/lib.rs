@@ -242,12 +242,32 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
     /// ```
     pub fn pow(self, exp: i32) -> Rational {
+        if self == Rational::zero() && exp.is_negative() {
+            panic!("can't raise 0 to a negative number")
+        }
+
         let abs = exp.abs() as u32;
-        let result = Rational::new(self.numerator().pow(abs), self.denominator().pow(abs));
+        let result = Rational::construct(self.numerator().pow(abs), self.denominator().pow(abs));
         if exp.is_negative() {
             result.inverse()
         } else {
             result
+        }
+    }
+
+    pub fn checked_pow(self, exp: i32) -> Option<Rational> {
+        if self == Rational::zero() && exp.is_negative() {
+            panic!("can't raise 0 to a negative number")
+        }
+
+        let abs = exp.abs() as u32;
+        let num = self.numerator().checked_pow(abs)?;
+        let den = self.denominator().checked_pow(abs)?;
+        let result = Rational::construct(num, den);
+        if exp.is_negative() {
+            Some(result.inverse())
+        } else {
+            Some(result)
         }
     }
 
