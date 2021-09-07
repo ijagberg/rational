@@ -652,6 +652,10 @@ mod tests {
         assert_eq!((1, 9), Rational::new(2, 6).pow(2).into());
         assert_eq!((1, 1), Rational::new(2, 6).pow(0).into());
         assert_eq!((16, 1), Rational::new(1, 4).pow(-2).into());
+
+        assert!(Rational::new(i128::MAX - 5, 1)
+            .checked_pow(i32::MAX)
+            .is_none());
     }
 
     #[test]
