@@ -30,6 +30,14 @@ impl Rational {
         this
     }
 
+    /// Create a new Rational without checking that `denominator` is non-zero, or reducing the Rational afterwards.
+    fn new_unchecked(numerator: i128, denominator: i128) -> Self {
+        Rational {
+            numerator,
+            denominator,
+        }
+    }
+
     /// Construct a new Rational.
     ///
     /// ## Panics
@@ -87,7 +95,7 @@ impl Rational {
     /// assert_eq!(Rational::integer(5), Rational::new(5, 1));
     /// ```
     pub fn integer(n: i128) -> Self {
-        Rational::new(n, 1)
+        Rational::new_unchecked(n, 1)
     }
 
     /// Shorthand for 0/1.
@@ -345,10 +353,7 @@ macro_rules! impl_from {
     ($type:ty) => {
         impl From<$type> for Rational {
             fn from(v: $type) -> Self {
-                Rational {
-                    numerator: v as i128,
-                    denominator: 1 as i128,
-                }
+                Rational::integer(v as i128)
             }
         }
     };
