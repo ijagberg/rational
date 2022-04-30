@@ -71,7 +71,7 @@ impl Rational {
         Some(this)
     }
 
-    /// Create a `Rational` from a mixed fraction.
+    /// Create a `Rational` from a [mixed fraction](https://en.wikipedia.org/wiki/Fraction#Mixed_numbers).
     ///
     /// ## Example
     /// ```rust
