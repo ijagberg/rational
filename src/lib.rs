@@ -1,3 +1,5 @@
+//! An implementation of [rational numbers](https://en.wikipedia.org/wiki/Rational_number) and operations.
+
 pub mod extras;
 mod ops;
 
@@ -14,7 +16,7 @@ pub struct Rational {
 }
 
 impl Rational {
-    fn construct(mut num: i128, mut den: i128) -> Self {
+    fn construct_and_reduce(mut num: i128, mut den: i128) -> Self {
         if den.is_negative() {
             // if both are negative, then both should be positive (reduce the -1 factor)
             // if only the denominator is negative, then move the -1 factor to the numerator for aesthetics
@@ -22,16 +24,13 @@ impl Rational {
             den = -den;
         }
 
-        let mut this = Self {
-            numerator: num,
-            denominator: den,
-        };
+        let mut this = Self::raw(num, den);
         this.reduce();
         this
     }
 
     /// Create a new Rational without checking that `denominator` is non-zero, or reducing the Rational afterwards.
-    fn new_unchecked(numerator: i128, denominator: i128) -> Self {
+    fn raw(numerator: i128, denominator: i128) -> Self {
         Rational {
             numerator,
             denominator,
@@ -66,7 +65,7 @@ impl Rational {
             return None;
         }
 
-        let this = Self::construct(num, den);
+        let this = Self::construct_and_reduce(num, den);
 
         Some(this)
     }
@@ -95,7 +94,8 @@ impl Rational {
     /// assert_eq!(Rational::integer(5), Rational::new(5, 1));
     /// ```
     pub fn integer(n: i128) -> Self {
-        Rational::new_unchecked(n, 1)
+        // use 'raw' since an integer is always already reduced
+        Rational::raw(n, 1)
     }
 
     /// Shorthand for 0/1.
@@ -148,6 +148,9 @@ impl Rational {
 
     /// Set the denominator of this `Rational`. It is then automatically reduced.
     ///
+    /// ## Panics
+    /// * If `denominator` is 0.
+    ///
     /// ## Example
     /// ```rust
     /// # use rational::Rational;
@@ -156,6 +159,9 @@ impl Rational {
     /// assert_eq!(r, Rational::new(2, 3));
     /// ```
     pub fn set_denominator(&mut self, denominator: i128) {
+        if denominator == 0 {
+            panic!("denominator can't be 0");
+        }
         self.denominator = denominator;
         self.reduce();
     }
@@ -173,7 +179,7 @@ impl Rational {
             // since all rationals are automatically reduced,
             // we can just swap the numerator and denominator
             // without calculating their GCD's again
-            Some(Self::construct(num, den))
+            Some(Self::construct_and_reduce(num, den))
         }
     }
 
@@ -255,7 +261,8 @@ impl Rational {
         }
 
         let abs = exp.abs() as u32;
-        let result = Rational::construct(self.numerator().pow(abs), self.denominator().pow(abs));
+        let result =
+            Rational::construct_and_reduce(self.numerator().pow(abs), self.denominator().pow(abs));
         if exp.is_negative() {
             result.inverse()
         } else {
@@ -265,13 +272,13 @@ impl Rational {
 
     pub fn checked_pow(self, exp: i32) -> Option<Rational> {
         if self == Rational::zero() && exp.is_negative() {
-            panic!("can't raise 0 to a negative number")
+            return None;
         }
 
         let abs = exp.abs() as u32;
         let num = self.numerator().checked_pow(abs)?;
         let den = self.denominator().checked_pow(abs)?;
-        let result = Rational::construct(num, den);
+        let result = Rational::construct_and_reduce(num, den);
         if exp.is_negative() {
             Some(result.inverse())
         } else {
@@ -287,11 +294,8 @@ impl Rational {
     /// assert_eq!(Rational::new(-5, 3).abs(), Rational::new(5, 3));
     /// ```
     pub fn abs(self) -> Rational {
-        // not using 'construct' since we know neither numerator or denominator will be negative
-        Rational {
-            numerator: self.numerator.abs(),
-            denominator: self.denominator,
-        }
+        // use `new_unchecked` since we know neither numerator or denominator will be negative
+        Rational::raw(self.numerator.abs(), self.denominator)
     }
 
     /// Returns `true` if `self` is an integer.
