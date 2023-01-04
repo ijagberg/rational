@@ -31,7 +31,7 @@ impl Rational {
 
     /// Create a new Rational without checking that `denominator` is non-zero, or reducing the Rational afterwards.
     fn raw(numerator: i128, denominator: i128) -> Self {
-        Rational {
+        Self {
             numerator,
             denominator,
         }
@@ -43,8 +43,8 @@ impl Rational {
     /// * If the resulting denominator is 0.
     pub fn new<N, D>(numerator: N, denominator: D) -> Self
     where
-        Rational: From<N>,
-        Rational: From<D>,
+        Self: From<N>,
+        Self: From<D>,
     {
         Self::new_checked(numerator, denominator).expect("denominator can't be 0")
     }
@@ -52,11 +52,11 @@ impl Rational {
     /// Construct a new Rational, returning `None` if the denominator is 0.
     pub fn new_checked<N, D>(numerator: N, denominator: D) -> Option<Self>
     where
-        Rational: From<N>,
-        Rational: From<D>,
+        Self: From<N>,
+        Self: From<D>,
     {
-        let numerator = Rational::from(numerator);
-        let denominator = Rational::from(denominator);
+        let numerator = Self::from(numerator);
+        let denominator = Self::from(denominator);
 
         let num = numerator.numerator * denominator.denominator;
         let den = numerator.denominator * denominator.numerator;
@@ -78,12 +78,12 @@ impl Rational {
     /// assert_eq!(Rational::from_mixed(1, (1, 2)), Rational::new(3, 2));
     /// assert_eq!(Rational::from_mixed(-1, (-1, 2)), Rational::new(-3, 2));
     /// ```
-    pub fn from_mixed<T>(whole: i128, fract: T) -> Rational
+    pub fn from_mixed<T>(whole: i128, fract: T) -> Self
     where
-        Rational: From<T>,
+        Self: From<T>,
     {
-        let fract = Rational::from(fract);
-        Rational::integer(whole) + fract
+        let fract = Self::from(fract);
+        Self::integer(whole) + fract
     }
 
     /// Shorthand for creating an integer `Rational`, eg. 5/1.
@@ -95,17 +95,17 @@ impl Rational {
     /// ```
     pub fn integer(n: i128) -> Self {
         // use 'raw' since an integer is always already reduced
-        Rational::raw(n, 1)
+        Self::raw(n, 1)
     }
 
     /// Shorthand for 0/1.
     pub fn zero() -> Self {
-        Rational::integer(0)
+        Self::integer(0)
     }
 
     /// Shorthand for 1/1.
     pub fn one() -> Self {
-        Rational::integer(1)
+        Self::integer(1)
     }
 
     /// Get the numerator in this `Rational`.
@@ -255,14 +255,14 @@ impl Rational {
     /// assert_eq!(Rational::new(2, 3).pow(2), Rational::new(4, 9));
     /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
     /// ```
-    pub fn pow(self, exp: i32) -> Rational {
-        if self == Rational::zero() && exp.is_negative() {
+    pub fn pow(self, exp: i32) -> Self {
+        if self == Self::zero() && exp.is_negative() {
             panic!("can't raise 0 to a negative number")
         }
 
         let abs = exp.abs() as u32;
         let result =
-            Rational::construct_and_reduce(self.numerator().pow(abs), self.denominator().pow(abs));
+            Self::construct_and_reduce(self.numerator().pow(abs), self.denominator().pow(abs));
         if exp.is_negative() {
             result.inverse()
         } else {
@@ -270,15 +270,15 @@ impl Rational {
         }
     }
 
-    pub fn checked_pow(self, exp: i32) -> Option<Rational> {
-        if self == Rational::zero() && exp.is_negative() {
+    pub fn checked_pow(self, exp: i32) -> Option<Self> {
+        if self == Self::zero() && exp.is_negative() {
             return None;
         }
 
         let abs = exp.abs() as u32;
         let num = self.numerator().checked_pow(abs)?;
         let den = self.denominator().checked_pow(abs)?;
-        let result = Rational::construct_and_reduce(num, den);
+        let result = Self::construct_and_reduce(num, den);
         if exp.is_negative() {
             Some(result.inverse())
         } else {
@@ -293,9 +293,9 @@ impl Rational {
     /// # use rational::*;
     /// assert_eq!(Rational::new(-5, 3).abs(), Rational::new(5, 3));
     /// ```
-    pub fn abs(self) -> Rational {
-        // use `new_unchecked` since we know neither numerator or denominator will be negative
-        Rational::raw(self.numerator.abs(), self.denominator)
+    pub fn abs(self) -> Self {
+        // use `raw` since we know neither numerator or denominator will be negative
+        Self::raw(self.numerator.abs(), self.denominator)
     }
 
     /// Returns `true` if `self` is an integer.
@@ -338,10 +338,10 @@ impl Rational {
     /// assert_eq!((mixed, fract), (-3, Rational::new(-1, 2)));
     /// assert_eq!(mixed + fract, Rational::new(-7, 2));
     /// ```
-    pub fn mixed_fraction(self) -> (i128, Rational) {
+    pub fn mixed_fraction(self) -> (i128, Self) {
         let rem = self.numerator() % self.denominator();
         let whole = self.numerator() / self.denominator();
-        let fract = Rational::new(rem, self.denominator());
+        let fract = Self::new(rem, self.denominator());
         debug_assert_eq!(whole + fract, self);
         (whole, fract)
     }
@@ -376,14 +376,14 @@ impl_from!(isize);
 
 impl<T, U> From<(T, U)> for Rational
 where
-    Rational: From<T>,
-    Rational: From<U>,
+    Self: From<T>,
+    Self: From<U>,
 {
     fn from((n, d): (T, U)) -> Self {
-        let n = Rational::from(n);
-        let d = Rational::from(d);
+        let n = Self::from(n);
+        let d = Self::from(d);
 
-        Rational::new(n, d)
+        Self::new(n, d)
     }
 }
 
