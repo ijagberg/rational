@@ -1,11 +1,26 @@
 use crate::{extras::*, Rational};
-use std::ops::*;
+use std::{
+    iter::{Product, Sum},
+    ops::*,
+};
 
 impl Neg for Rational {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
         -1 * self
+    }
+}
+
+impl Product for Rational {
+    fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Rational::one(), |a, b| a * b)
+    }
+}
+
+impl Sum for Rational {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Rational::zero(), |a, b| a + b)
     }
 }
 
@@ -323,6 +338,22 @@ mod tests {
         assert_eq!(-Rational::new(5, 9), Rational::new(-5, 9));
         assert_eq!(-Rational::new(-1, 2), Rational::new(1, 2));
         assert_eq!(-Rational::integer(100), Rational::integer(-100));
+    }
+
+    #[test]
+    fn product_test() {
+        let product: Rational = vec![r(1, 2), r(1, 4), r(4, 7)].into_iter().product();
+        assert_eq!(product, r(1, 14));
+        let product: Rational = vec![r(-1, 2), r(1, 4), r(4, 7)].into_iter().product();
+        assert_eq!(product, r(-1, 14));
+    }
+
+    #[test]
+    fn sum_test() {
+        let sum: Rational = vec![r(1, 2), r(1, 4), r(4, 7)].into_iter().sum();
+        assert_eq!(sum, r(37, 28));
+        let sum: Rational = vec![r(-1, 2), r(1, 4), r(4, 7)].into_iter().sum();
+        assert_eq!(sum, r(9, 28));
     }
 
     #[test]
