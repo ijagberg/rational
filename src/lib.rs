@@ -6,6 +6,10 @@ mod ops;
 use extras::gcd;
 use std::fmt::Display;
 
+const DENOMINATOR_CANT_BE_ZERO: &str = "denominator can't be zero";
+const CANT_RAISE_ZERO_TO_NEGATIVE_NUMBER: &str = "can't raise 0 to a negative number";
+const CANT_TAKE_INVERSE_WHEN_NUMERATOR_IS_ZERO: &str = "can't take the inverse when numerator is 0";
+
 /// A rational number (a fraction of two integers).
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
 pub struct Rational {
@@ -46,7 +50,7 @@ impl Rational {
         Self: From<N>,
         Self: From<D>,
     {
-        Self::new_checked(numerator, denominator).expect("denominator can't be 0")
+        Self::new_checked(numerator, denominator).expect(DENOMINATOR_CANT_BE_ZERO)
     }
 
     /// Construct a new Rational, returning `None` if the denominator is 0.
@@ -160,7 +164,7 @@ impl Rational {
     /// ```
     pub fn set_denominator(&mut self, denominator: i128) {
         if denominator == 0 {
-            panic!("denominator can't be 0");
+            panic!("{}", DENOMINATOR_CANT_BE_ZERO);
         }
         self.denominator = denominator;
         self.reduce();
@@ -189,7 +193,7 @@ impl Rational {
     /// * If the numerator is 0, since then the inverse will be divided by 0.
     pub fn inverse(self) -> Self {
         self.inverse_checked()
-            .expect("can't take the inverse when numerator is 0")
+            .expect(CANT_TAKE_INVERSE_WHEN_NUMERATOR_IS_ZERO)
     }
 
     /// Returns the decimal value of this `Rational`.
@@ -257,7 +261,7 @@ impl Rational {
     /// ```
     pub fn pow(self, exp: i32) -> Self {
         if self == Self::zero() && exp.is_negative() {
-            panic!("can't raise 0 to a negative number")
+            panic!("{}", CANT_RAISE_ZERO_TO_NEGATIVE_NUMBER);
         }
 
         let abs = exp.abs() as u32;
