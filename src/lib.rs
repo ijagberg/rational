@@ -96,6 +96,7 @@ impl Rational {
     /// ```rust
     /// # use rational::Rational;
     /// assert_eq!(Rational::integer(5), Rational::new(5, 1));
+    /// assert_eq!(Rational::integer(-100), Rational::new(-100, 1));
     /// ```
     pub fn integer(n: i128) -> Self {
         // use 'raw' since an integer is always already reduced
@@ -361,7 +362,7 @@ macro_rules! impl_from {
     ($type:ty) => {
         impl From<$type> for Rational {
             fn from(v: $type) -> Self {
-                Rational::integer(v as i128)
+                Rational::integer(i128::from(v))
             }
         }
     };
@@ -376,7 +377,6 @@ impl_from!(i16);
 impl_from!(i32);
 impl_from!(i64);
 impl_from!(i128);
-impl_from!(isize);
 
 impl<T, U> From<(T, U)> for Rational
 where

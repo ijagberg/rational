@@ -83,7 +83,6 @@ mod add {
     impl_add!(i32);
     impl_add!(i64);
     impl_add!(i128);
-    impl_add!(isize);
 }
 
 mod mul {
@@ -145,7 +144,6 @@ mod mul {
     impl_mul!(i32);
     impl_mul!(i64);
     impl_mul!(i128);
-    impl_mul!(isize);
 }
 
 mod sub {
@@ -202,7 +200,6 @@ mod sub {
     impl_sub!(i32);
     impl_sub!(i64);
     impl_sub!(i128);
-    impl_sub!(isize);
 }
 
 mod div {
@@ -259,7 +256,6 @@ mod div {
     impl_div!(i32);
     impl_div!(i64);
     impl_div!(i128);
-    impl_div!(isize);
 }
 
 mod rem {
@@ -326,7 +322,6 @@ mod rem {
     impl_rem!(i32);
     impl_rem!(i64);
     impl_rem!(i128);
-    impl_rem!(isize);
 }
 
 #[cfg(test)]
