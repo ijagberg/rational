@@ -316,6 +316,20 @@ impl Rational {
         self.denominator() == 1
     }
 
+    /// Returns `true` if `self` is positive.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert!(Rational::new(1, 2).is_positive());
+    /// assert!(Rational::new(-1, -2).is_positive());
+    /// assert!(!Rational::new(-1, 2).is_positive());
+    /// assert!(!Rational::new(1, -2).is_positive());
+    /// ```
+    pub fn is_positive(&self) -> bool {
+        self.numerator().is_positive()
+    }
+
     /// Returns `true` if `self` is negative.
     ///
     /// ## Example
@@ -451,6 +465,71 @@ impl PartialOrd for Rational {
     }
 }
 
+macro_rules! impl_eq_integer {
+    ($type:ty) => {
+        impl PartialEq<$type> for Rational {
+            fn eq(&self, other: &$type) -> bool {
+                *self == Self::integer(*other as i128)
+            }
+        }
+    };
+}
+
+macro_rules! impl_eq_float {
+    ($type:ty) => {
+        impl PartialEq<$type> for Rational {
+            fn eq(&self, other: &$type) -> bool {
+                self.decimal_value() == (*other as f64)
+            }
+        }
+    };
+}
+
+impl_eq_integer!(i8);
+impl_eq_integer!(i16);
+impl_eq_integer!(i32);
+impl_eq_integer!(i64);
+impl_eq_integer!(i128);
+impl_eq_integer!(u8);
+impl_eq_integer!(u16);
+impl_eq_integer!(u32);
+impl_eq_integer!(u64);
+
+impl_eq_float!(f32);
+impl_eq_float!(f64);
+
+macro_rules! impl_cmp_integer {
+    ($type:ty) => {
+        impl PartialOrd<$type> for Rational {
+            fn partial_cmp(&self, other: &$type) -> Option<std::cmp::Ordering> {
+                Some(self.cmp(&Self::integer(*other as i128)))
+            }
+        }
+    };
+}
+macro_rules! impl_cmp_float {
+    ($type:ty) => {
+        impl PartialOrd<$type> for Rational {
+            fn partial_cmp(&self, other: &$type) -> Option<std::cmp::Ordering> {
+                self.decimal_value().partial_cmp(&(*other as f64))
+            }
+        }
+    };
+}
+
+impl_cmp_integer!(i8);
+impl_cmp_integer!(i16);
+impl_cmp_integer!(i32);
+impl_cmp_integer!(i64);
+impl_cmp_integer!(i128);
+impl_cmp_integer!(u8);
+impl_cmp_integer!(u16);
+impl_cmp_integer!(u32);
+impl_cmp_integer!(u64);
+
+impl_cmp_float!(f32);
+impl_cmp_float!(f64);
+
 impl From<Rational> for f64 {
     fn from(rat: Rational) -> f64 {
         (rat.numerator() as f64) / (rat.denominator() as f64)
@@ -492,10 +571,15 @@ mod tests {
     }
 
     #[test]
-    fn equality_test() {
+    fn cmp_test() {
         assert_eq_rational((4, 8), (16, 32));
         assert_eq_rational((2, 3), (4, 6));
         assert_ne_rat((-1, 2), (1, 2));
+        assert_eq!(Rational::zero(), 0);
+        assert!(Rational::integer(15) > 14);
+        assert_eq!(Rational::new(1, 3), 1.0 / 3.0);
+        assert_eq!(Rational::new(1, 2), 0.5);
+        assert!(Rational::new(1, 3) < 0.333333334);
     }
 
     #[test]
