@@ -6,6 +6,8 @@ mod ops;
 use extras::gcd;
 use std::fmt::Display;
 
+const DENOMINATOR_CANT_BE_ZERO: &str = "denominator can't be zero";
+
 /// A rational number (a fraction of two integers).
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
 pub struct Rational {
