@@ -6,10 +6,6 @@ mod ops;
 use extras::gcd;
 use std::fmt::Display;
 
-const DENOMINATOR_CANT_BE_ZERO: &str = "denominator can't be zero";
-const CANT_RAISE_ZERO_TO_NEGATIVE_NUMBER: &str = "can't raise 0 to a negative number";
-const CANT_TAKE_INVERSE_WHEN_NUMERATOR_IS_ZERO: &str = "can't take the inverse when numerator is 0";
-
 /// A rational number (a fraction of two integers).
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
 pub struct Rational {
@@ -164,9 +160,6 @@ impl Rational {
     /// assert_eq!(r, Rational::new(2, 3));
     /// ```
     pub fn set_denominator(&mut self, denominator: i128) {
-        if denominator == 0 {
-            panic!("{}", DENOMINATOR_CANT_BE_ZERO);
-        }
         self.denominator = denominator;
         self.reduce();
     }
@@ -193,8 +186,7 @@ impl Rational {
     /// ## Panics
     /// * If the numerator is 0, since then the inverse will be divided by 0.
     pub fn inverse(self) -> Self {
-        self.inverse_checked()
-            .expect(CANT_TAKE_INVERSE_WHEN_NUMERATOR_IS_ZERO)
+        Self::new(1, self)
     }
 
     /// Returns the decimal value of this `Rational`.
@@ -260,11 +252,7 @@ impl Rational {
     /// assert_eq!(Rational::new(2, 3).pow(2), Rational::new(4, 9));
     /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
     /// ```
-    pub fn pow(self, exp: i32) -> Self {
-        if self == Self::zero() && exp.is_negative() {
-            panic!("{}", CANT_RAISE_ZERO_TO_NEGATIVE_NUMBER);
-        }
-
+    pub fn pow(self, exp: i32) -> Rational {
         let abs = exp.abs() as u32;
         let result =
             Self::construct_and_reduce(self.numerator().pow(abs), self.denominator().pow(abs));
@@ -376,7 +364,10 @@ macro_rules! impl_from {
     ($type:ty) => {
         impl From<$type> for Rational {
             fn from(v: $type) -> Self {
-                Rational::integer(i128::from(v))
+                Rational {
+                    numerator: v as i128,
+                    denominator: 1 as i128,
+                }
             }
         }
     };
