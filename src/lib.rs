@@ -255,7 +255,7 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
     /// ```
     pub fn pow(self, exp: i32) -> Rational {
-        let abs = exp.abs() as u32;
+        let abs = exp.unsigned_abs();
         let result =
             Self::construct_and_reduce(self.numerator().pow(abs), self.denominator().pow(abs));
         if exp.is_negative() {
@@ -270,7 +270,7 @@ impl Rational {
             return None;
         }
 
-        let abs = exp.abs() as u32;
+        let abs = exp.unsigned_abs();
         let num = self.numerator().checked_pow(abs)?;
         let den = self.denominator().checked_pow(abs)?;
         let result = Self::construct_and_reduce(num, den);
