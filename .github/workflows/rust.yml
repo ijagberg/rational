@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: [master, develop]
+    branches: [develop]
   pull_request:
     branches: [master]
 
@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build
         run: cargo build --verbose
       - name: Clippy
-        run: cargo clippy --verbose
+        run: cargo clippy --verbose -- -D warnings
       - name: Run tests
         run: cargo test --verbose
