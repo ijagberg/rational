@@ -533,11 +533,11 @@ mod tests {
         };
         for (int, rat, rem) in [(10, r(2, 5), r(0, 1)), (5, r(26, 5), r(1, 5))] {
             dbg!(int, rat, rem);
-            if Rational::integer(int) > rat {
+            if int > rat {
                 assert_eq!(int % rat, rem);
                 assert_eq!(rat % int, rat);
                 assert_eq!(assign(int, rat), rat);
-            } else if Rational::integer(int) < rat {
+            } else if int < rat {
                 assert_eq!(int % rat, int);
                 assert_eq!(rat % int, rem);
                 assert_eq!(assign(int, rat), rem);

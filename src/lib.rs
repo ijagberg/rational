@@ -465,6 +465,12 @@ macro_rules! impl_eq_integer {
                 *self == Self::integer(*other as i128)
             }
         }
+
+        impl PartialEq<Rational> for $type {
+            fn eq(&self, other: &Rational) -> bool {
+                Rational::integer(*self as i128) == *other
+            }
+        }
     };
 }
 
@@ -473,6 +479,12 @@ macro_rules! impl_eq_float {
         impl PartialEq<$type> for Rational {
             fn eq(&self, other: &$type) -> bool {
                 self.decimal_value() == (*other as f64)
+            }
+        }
+
+        impl PartialEq<Rational> for $type {
+            fn eq(&self, other: &Rational) -> bool {
+                (*self as f64) == other.decimal_value()
             }
         }
     };
@@ -498,6 +510,12 @@ macro_rules! impl_cmp_integer {
                 Some(self.cmp(&Self::integer(*other as i128)))
             }
         }
+
+        impl PartialOrd<Rational> for $type {
+            fn partial_cmp(&self, other: &Rational) -> Option<std::cmp::Ordering> {
+                Some(Rational::integer(*self as i128).cmp(other))
+            }
+        }
     };
 }
 macro_rules! impl_cmp_float {
@@ -505,6 +523,12 @@ macro_rules! impl_cmp_float {
         impl PartialOrd<$type> for Rational {
             fn partial_cmp(&self, other: &$type) -> Option<std::cmp::Ordering> {
                 self.decimal_value().partial_cmp(&(*other as f64))
+            }
+        }
+
+        impl PartialOrd<Rational> for $type {
+            fn partial_cmp(&self, other: &Rational) -> Option<std::cmp::Ordering> {
+                (*self as f64).partial_cmp(&other.decimal_value())
             }
         }
     };
@@ -573,6 +597,8 @@ mod tests {
         assert_eq!(Rational::new(1, 3), 1.0 / 3.0);
         assert_eq!(Rational::new(1, 2), 0.5);
         assert!(Rational::new(1, 3) < 0.333333334);
+        assert!(1 < r(3, 2));
+        assert!(r(3, 2) > 1);
     }
 
     #[test]
