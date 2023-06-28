@@ -34,6 +34,36 @@ pub fn gcd(mut a: i128, mut b: i128) -> i128 {
     a
 }
 
+/// Calculate the least common multiple of two numbers.
+///
+/// ## Panics
+/// * If overflow occurred
+///
+/// ## Example
+/// ```rust
+/// # use rational::extras::*;
+/// assert_eq!(lcm(6, 8), 24);
+/// assert_eq!(lcm(-6, 8), 24);
+/// ```
+pub fn lcm(a: i128, b: i128) -> i128 {
+    let g = gcd(a, b);
+    a.abs() * (b.abs() / g)
+}
+
+/// Calculate the least common multiple of two numbers, raturning `None` if overflow occurred.
+///
+/// ## Example
+/// ```rust
+/// # use rational::extras::*;
+/// assert_eq!(lcm_checked(6, 8), Some(24));
+/// assert_eq!(lcm_checked(-6, 8), Some(24));
+/// assert_eq!(lcm_checked(i128::MAX, i128::MAX - 1), None);
+/// ```
+pub fn lcm_checked(a: i128, b: i128) -> Option<i128> {
+    let g = gcd(a, b);
+    a.abs().checked_mul(b.abs().checked_div(g)?)
+}
+
 pub fn is_coprime(l: i128, r: i128) -> bool {
     gcd(l, r) == 1
 }
@@ -125,6 +155,12 @@ mod tests {
         eq(5, 4, 1);
         eq(12, 4, 4);
         eq(-74, 44, 2);
+    }
+
+    #[test]
+    fn lcm_test() {
+        assert_eq!(lcm(2, 6), 6);
+        assert_eq!(lcm(1, 6), 6);
     }
 
     #[test]

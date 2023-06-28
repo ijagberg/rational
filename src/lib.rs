@@ -167,7 +167,7 @@ impl Rational {
     }
 
     /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0.
-    /// 
+    ///
     /// ## Example
     /// ```rust
     /// # use rational::Rational;
@@ -196,7 +196,7 @@ impl Rational {
     ///
     /// ## Panics
     /// * If the numerator is 0, since then the inverse will be divided by 0.
-    /// 
+    ///
     /// ## Example
     /// ```rust
     /// # use rational::Rational;
@@ -212,28 +212,59 @@ impl Rational {
         f64::from(self)
     }
 
-    pub fn checked_add<T>(self, other: T) -> Option<Self>
+    /// Checked addition. Computes `self + rhs`, returning `None` if overflow occurred.
+    ///
+    /// ## Note
+    /// Keep in mind that there are various multiplications performed in order to add two rational numbers,
+    /// which may lead to unexpected behaviour with very large numerators or denominators, even though the rational number
+    /// itself may be small.
+    ///
+    pub fn checked_add<T>(self, rhs: T) -> Option<Self>
     where
         Self: From<T>,
     {
-        let other = Self::from(other);
-        let num_den = self.numerator.checked_mul(other.denominator)?;
-        let den_num = self.denominator.checked_mul(other.numerator)?;
-        let numerator = num_den.checked_add(den_num)?;
+        let rhs = Rational::from(rhs);
+        let gcd = gcd(self.denominator(), rhs.denominator());
+        let lcm = self
+            .denominator()
+            .abs()
+            .checked_mul(rhs.denominator().abs().checked_div(gcd)?)?;
 
-        let denominator = self.denominator.checked_mul(other.denominator)?;
+        let num1 = self
+            .numerator()
+            .checked_mul(lcm.checked_div(self.denominator())?)?;
+        let num2 = rhs
+            .numerator()
+            .checked_mul(lcm.checked_div(rhs.denominator())?)?;
 
-        Some(Self::new::<i128, i128>(numerator, denominator))
+        let num = num1.checked_add(num2)?;
+        Some(Rational::new::<i128, i128>(num, lcm))
     }
 
-    pub fn checked_mul<T>(self, other: T) -> Option<Self>
+    /// Checked multiplication. Computes `self * rhs`, returning `None` if overflow occurred.
+    ///
+    /// ## Note
+    /// Keep in mind that there are various multiplications performed in order to add two rational numbers,
+    /// which may lead to unexpected behaviour with very large numerators or denominators, even though the rational number
+    /// itself may be small.
+    ///
+    pub fn checked_mul<T>(self, rhs: T) -> Option<Self>
     where
         Self: From<T>,
     {
-        let other = Self::from(other);
-        let numerator = self.numerator.checked_mul(other.numerator)?;
-        let denominator = self.denominator.checked_mul(other.denominator)?;
-        Some(Self::new::<i128, i128>(numerator, denominator))
+        let rhs = Rational::from(rhs);
+        let (self_num, self_den) = (self.numerator(), self.denominator());
+        let (rhs_num, rhs_den) = (rhs.numerator(), rhs.denominator());
+        let num_den_gcd = gcd(self_num, rhs_den);
+        let den_num_gcd = gcd(self_den, rhs_num);
+        let numerator = self_num
+            .checked_div(num_den_gcd)?
+            .checked_mul(rhs_num.checked_div(den_num_gcd)?)?;
+        let denominator = self_den
+            .checked_div(den_num_gcd)?
+            .checked_mul(rhs_den.checked_div(num_den_gcd)?)?;
+
+        Some(Rational::raw(numerator, denominator))
     }
 
     pub fn checked_sub<T>(self, other: T) -> Option<Self>
@@ -801,6 +832,22 @@ mod tests {
         assert_eq!(Rational::new(1, 2).abs(), Rational::new(1, 2));
         assert_eq!(Rational::new(-1, 2).abs(), Rational::new(1, 2));
         assert_eq!(Rational::new(1, -2).abs(), Rational::new(1, 2));
+    }
+
+    #[test]
+    fn checked_add_test() {
+        assert_eq!(r(1, 2).checked_add(r(3, 5)), Some(r(11, 10)));
+        assert!(Rational::integer(i128::MAX)
+            .checked_add(i128::MAX)
+            .is_none());
+    }
+
+    #[test]
+    fn checked_mul_test() {
+        assert_eq!(r(1, 2).checked_mul(r(3, 5)), Some(r(3, 10)));
+        assert!(Rational::integer(i128::MAX)
+            .checked_mul(i128::MAX)
+            .is_none());
     }
 
     fn random_rat() -> Rational {

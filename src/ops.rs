@@ -31,12 +31,13 @@ mod add {
         type Output = Rational;
 
         fn add(self, rhs: Rational) -> Self::Output {
-            let den = self.denominator() * rhs.denominator();
+            let gcd = gcd(self.denominator(), rhs.denominator());
+            let lcm = self.denominator().abs() * (rhs.denominator().abs() / gcd);
 
-            let num1 = self.numerator() * rhs.denominator();
-            let num2 = rhs.numerator() * self.denominator();
+            let num1 = self.numerator() * (lcm / self.denominator());
+            let num2 = rhs.numerator() * (lcm / rhs.denominator());
 
-            Rational::new(num1 + num2, den)
+            Rational::new(num1 + num2, lcm)
         }
     }
 
@@ -97,7 +98,7 @@ mod mul {
             let numerator = (self.numerator / num_den_gcd) * (rhs.numerator / den_num_gcd);
             let denominator = (self.denominator / den_num_gcd) * (rhs.denominator / num_den_gcd);
 
-            Rational::new::<i128, i128>(numerator, denominator)
+            Rational::raw(numerator, denominator)
         }
     }
 
@@ -266,7 +267,7 @@ mod rem {
 
         fn rem(self, rhs: Rational) -> Self::Output {
             let neg = self.is_negative();
-            let a = if neg { self.abs() } else { self };
+            let a = self.abs();
             let b = rhs.abs();
             let div = Div::<Rational>::div(a, b);
             let (_, mut fract) = div.mixed_fraction();
@@ -372,9 +373,9 @@ mod tests {
             rat_copy += int;
             rat_copy
         };
-        for (int, rat, sum) in [(10, r(1, 2), r(21, 2)), (217, r(1, 2), r(435, 2))] {
-            assert_eq!(int + rat, sum);
-            assert_eq!(assign(int, rat), sum);
+        for t @ (int, rat, sum) in [(10, r(1, 2), r(21, 2)), (217, r(1, 2), r(435, 2))] {
+            assert_eq!(int + rat, sum, "{t:?}");
+            assert_eq!(assign(int, rat), sum, "{t:?}");
         }
     }
 
