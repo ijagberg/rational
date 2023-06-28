@@ -167,6 +167,15 @@ impl Rational {
     }
 
     /// Returns the inverse of this `Rational`, or `None` if the denominator of the inverse is 0.
+    /// 
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// let r = Rational::new(1, 2);
+    /// assert_eq!(r.inverse_checked(), Some(Rational::new(2, 1)));
+    /// let zero = Rational::new(0, 1);
+    /// assert!(zero.inverse_checked().is_none());
+    /// ```
     pub fn inverse_checked(self) -> Option<Self> {
         if self.numerator() == 0 {
             None
@@ -187,6 +196,12 @@ impl Rational {
     ///
     /// ## Panics
     /// * If the numerator is 0, since then the inverse will be divided by 0.
+    /// 
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).inverse(), Rational::new(2, 1));
+    /// ```
     pub fn inverse(self) -> Self {
         Self::new(1, self)
     }
@@ -772,6 +787,12 @@ mod tests {
         assert!(Rational::new(i128::MAX - 5, 1)
             .checked_pow(i32::MAX)
             .is_none());
+    }
+
+    #[should_panic]
+    #[test]
+    fn pow_panic_test() {
+        Rational::zero().pow(-1);
     }
 
     #[test]
