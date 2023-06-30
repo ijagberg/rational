@@ -162,6 +162,10 @@ impl Rational {
     /// assert_eq!(r, Rational::new(2, 3));
     /// ```
     pub fn set_denominator(&mut self, denominator: i128) {
+        if denominator == 0 {
+            panic!("{}", DENOMINATOR_CANT_BE_ZERO);
+        }
+
         self.denominator = denominator;
         self.reduce();
     }
@@ -767,29 +771,28 @@ mod tests {
 
     #[test]
     fn readme_test() {
-        // all rationals are automatically reduced when created, so equality works as following:
+        // Rationals are automatically reduced when created:
         let one_half = Rational::new(1, 2);
         let two_quarters = Rational::new(2, 4);
         assert_eq!(one_half, two_quarters);
 
-        // you can make more complicated rationals:
-        let one_half_over_one_quarter = Rational::new(Rational::new(1, 2), Rational::new(1, 4)); // (1/2)/(1/4)
+        // You can use Rationals to make new Rationals:
+        let one_half_over_one_quarter = Rational::new(Rational::new(1, 2), Rational::new(1, 4));
         assert_eq!(one_half_over_one_quarter, Rational::new(2, 1));
 
-        // mathematical operations are implemented for integers and rationals:
+        // Operations are implemented for Rationals and integers:
         let one_ninth = Rational::new(1, 9);
         assert_eq!(one_ninth + Rational::new(5, 4), Rational::new(49, 36));
         assert_eq!(one_ninth - 4, Rational::new(-35, 9));
         assert_eq!(one_ninth / Rational::new(21, 6), Rational::new(2, 63));
 
-        // other properties, such as
-        // inverse
-        let r = Rational::new(8, 3);
-        let inverse = r.inverse();
+        // Inverse:
+        let eight_thirds = Rational::new(8, 3);
+        let inverse = eight_thirds.inverse();
         assert_eq!(inverse, Rational::new(3, 8));
-        assert_eq!(inverse, Rational::new(1, r));
-        // mixed fraction
-        let (whole, fractional) = r.mixed_fraction();
+
+        // Mixed fractions:
+        let (whole, fractional) = eight_thirds.mixed_fraction();
         assert_eq!(whole, 2);
         assert_eq!(fractional, Rational::new(2, 3));
     }
@@ -808,6 +811,13 @@ mod tests {
         rat.set_denominator(4);
 
         assert_eq!(rat, Rational::new(1, 2));
+    }
+
+    #[test]
+    #[should_panic]
+    fn set_denominator_panic_test() {
+        let mut rat = Rational::new(1, 2);
+        rat.set_denominator(0);
     }
 
     #[test]
