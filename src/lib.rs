@@ -60,8 +60,8 @@ impl Rational {
         let numerator = Self::from(numerator);
         let denominator = Self::from(denominator);
 
-        let num = numerator.numerator * denominator.denominator;
-        let den = numerator.denominator * denominator.numerator;
+        let num = numerator.numerator() * denominator.denominator();
+        let den = numerator.denominator() * denominator.numerator();
 
         if den == 0 {
             return None;
@@ -214,11 +214,18 @@ impl Rational {
 
     /// Checked addition. Computes `self + rhs`, returning `None` if overflow occurred.
     ///
-    /// ## Note
-    /// Keep in mind that there are various multiplications performed in order to add two rational numbers,
-    /// which may lead to unexpected behaviour with very large numerators or denominators, even though the rational number
+    /// ## Notes
+    /// Keep in mind that there are various operations performed in order to add two rational numbers,
+    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
     /// itself may be small.
     ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).checked_add(Rational::new(2, 3)), Some(Rational::new(7, 6)));
+    /// assert_eq!(Rational::new(1, 2).checked_add(2_i32), Some(Rational::new(5, 2)));
+    /// assert!(Rational::new(1, 1).checked_add(i128::MAX).is_none());
+    /// ```
     pub fn checked_add<T>(self, rhs: T) -> Option<Self>
     where
         Self: From<T>,
@@ -243,11 +250,18 @@ impl Rational {
 
     /// Checked multiplication. Computes `self * rhs`, returning `None` if overflow occurred.
     ///
-    /// ## Note
-    /// Keep in mind that there are various multiplications performed in order to add two rational numbers,
-    /// which may lead to unexpected behaviour with very large numerators or denominators, even though the rational number
+    /// ## Notes
+    /// Keep in mind that there are various operations performed in order to multiply two rational numbers,
+    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
     /// itself may be small.
     ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).checked_mul(Rational::new(2, 3)), Some(Rational::new(1, 3)));
+    /// assert_eq!(Rational::new(1, 2).checked_mul(2_i32), Some(Rational::new(1, 1)));
+    /// assert!(Rational::new(2, 1).checked_mul(i128::MAX).is_none());
+    /// ```
     pub fn checked_mul<T>(self, rhs: T) -> Option<Self>
     where
         Self: From<T>,
@@ -267,22 +281,51 @@ impl Rational {
         Some(Rational::raw(numerator, denominator))
     }
 
-    pub fn checked_sub<T>(self, other: T) -> Option<Self>
+    /// Checked subtraction. Computes `self - rhs`, returning `None` if overflow occurred.
+    ///
+    /// ## Notes
+    /// Keep in mind that there are various operations performed in order to subtract two rational numbers,
+    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
+    /// itself may be small.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).checked_sub(Rational::new(2, 3)), Some(Rational::new(-1, 6)));
+    /// assert_eq!(Rational::new(1, 2).checked_sub(2_i32), Some(Rational::new(-3, 2)));
+    /// assert!(Rational::new(-10, 1).checked_sub(i128::MAX).is_none());
+    /// ```
+    pub fn checked_sub<T>(self, rhs: T) -> Option<Self>
     where
         Self: From<T>,
     {
-        let other = Self::from(other);
-        self.checked_add::<Rational>(-other)
+        let rhs = Self::from(rhs);
+        self.checked_add::<Rational>(-rhs)
     }
 
-    pub fn checked_div<T>(self, other: T) -> Option<Self>
+    /// Checked division. Computes `self / rhs`, returning `None` if overflow occurred.
+    ///
+    /// ## Panics
+    /// * If `rhs == 0`
+    ///
+    /// ## Notes
+    /// Keep in mind that there are various operations performed in order to divide two rational numbers,
+    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
+    /// itself may be small.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).checked_div(Rational::new(2, 3)), Some(Rational::new(3, 4)));
+    /// assert_eq!(Rational::new(1, 2).checked_div(2_i32), Some(Rational::new(1, 4)));
+    /// assert!(Rational::new(1, i128::MAX).checked_div(i128::MAX).is_none());
+    /// ```
+    pub fn checked_div<T>(self, rhs: T) -> Option<Self>
     where
         Self: From<T>,
     {
-        let other = Self::from(other);
-        let numerator = self.numerator.checked_mul(other.denominator)?;
-        let denominator = self.denominator.checked_mul(other.numerator)?;
-        Some(Self::new::<i128, i128>(numerator, denominator))
+        let rhs = Self::from(rhs);
+        self.checked_mul::<Rational>(rhs.inverse())
     }
 
     /// Raises self to the power of `exp`.
@@ -352,7 +395,7 @@ impl Rational {
         self.denominator() == 1
     }
 
-    /// Returns `true` if `self` is positive.
+    /// Returns `true` if `self` is positive and `false` if it is zero or negative.
     ///
     /// ## Example
     /// ```rust
@@ -360,20 +403,20 @@ impl Rational {
     /// assert!(Rational::new(1, 2).is_positive());
     /// assert!(Rational::new(-1, -2).is_positive());
     /// assert!(!Rational::new(-1, 2).is_positive());
-    /// assert!(!Rational::new(1, -2).is_positive());
+    /// assert!(!Rational::zero().is_positive());
     /// ```
     pub fn is_positive(&self) -> bool {
         self.numerator().is_positive()
     }
 
-    /// Returns `true` if `self` is negative.
+    /// Returns `true` if `self` is negative and `false` if it is zero or positive.
     ///
     /// ## Example
     /// ```rust
     /// # use rational::*;
     /// assert!(Rational::new(-1, 2).is_negative());
     /// assert!(Rational::new(1, -2).is_negative());
-    /// assert!(!Rational::new(1, 2).is_negative());
+    /// assert!(!Rational::zero().is_negative());
     /// ```
     pub fn is_negative(&self) -> bool {
         self.numerator().is_negative()
@@ -412,10 +455,7 @@ macro_rules! impl_from {
     ($type:ty) => {
         impl From<$type> for Rational {
             fn from(v: $type) -> Self {
-                Rational {
-                    numerator: v as i128,
-                    denominator: 1 as i128,
-                }
+                Rational::raw(v as i128, 1)
             }
         }
     };
@@ -564,6 +604,7 @@ macro_rules! impl_cmp_integer {
         }
     };
 }
+
 macro_rules! impl_cmp_float {
     ($type:ty) => {
         impl PartialOrd<$type> for Rational {
