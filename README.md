@@ -8,8 +8,12 @@ let one_half = Rational::new(1, 2);
 let two_quarters = Rational::new(2, 4);
 assert_eq!(one_half, two_quarters);
 
-// You can use Rationals to make new Rationals:
-let one_half_over_one_quarter = Rational::new(Rational::new(1, 2), Rational::new(1, 4));
+// `From` is implemented for integers and integer tuples:
+assert_eq!(Rational::from(1), Rational::new(1, 1));
+assert_eq!(Rational::from((1, 2)), Rational::new(1, 2));
+
+// The `new` method takes a numerator and denominator that implement `Into<Rational>`:
+let one_half_over_one_quarter = Rational::new((1, 2), (1, 4));
 assert_eq!(one_half_over_one_quarter, Rational::new(2, 1));
 ```
 
