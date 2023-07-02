@@ -1,4 +1,4 @@
-//! Contains some helper functions that can be useful.
+//! Contains some helper functions that can be useful and/or fun.
 
 use crate::Rational;
 
@@ -64,6 +64,16 @@ pub fn lcm_checked(a: i128, b: i128) -> Option<i128> {
     a.abs().checked_mul(b.abs().checked_div(g)?)
 }
 
+/// Checks if `l` and `r` are [coprime](https://en.wikipedia.org/wiki/Coprime_integers). Shorthand for `gcd(l, r) == 1`.
+///
+/// ## Example
+/// ```rust
+/// # use rational::extras::*;
+/// assert!(is_coprime(8, 9));
+/// assert!(is_coprime(7, 9));
+/// assert!(!is_coprime(6, 9));
+/// assert!(is_coprime(-1, 1));
+/// ```
 pub fn is_coprime(l: i128, r: i128) -> bool {
     gcd(l, r) == 1
 }
