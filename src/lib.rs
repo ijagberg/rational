@@ -220,7 +220,7 @@ impl Rational {
     ///
     /// ## Notes
     /// Keep in mind that there are various operations performed in order to add two rational numbers,
-    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
+    /// which may lead to overflow for rationals with very large numerators or denominators, even though the rational number
     /// itself may be small.
     ///
     /// ## Example
@@ -256,7 +256,7 @@ impl Rational {
     ///
     /// ## Notes
     /// Keep in mind that there are various operations performed in order to multiply two rational numbers,
-    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
+    /// which may lead to overflow for rationals with very large numerators or denominators, even though the rational number
     /// itself may be small.
     ///
     /// ## Example
@@ -289,7 +289,7 @@ impl Rational {
     ///
     /// ## Notes
     /// Keep in mind that there are various operations performed in order to subtract two rational numbers,
-    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
+    /// which may lead to overflow for rationals with very large numerators or denominators, even though the rational number
     /// itself may be small.
     ///
     /// ## Example
@@ -314,7 +314,7 @@ impl Rational {
     ///
     /// ## Notes
     /// Keep in mind that there are various operations performed in order to divide two rational numbers,
-    /// which may lead to overflow for rational with very large numerators or denominators, even though the rational number
+    /// which may lead to overflow for rationals with very large numerators or denominators, even though the rational number
     /// itself may be small.
     ///
     /// ## Example
