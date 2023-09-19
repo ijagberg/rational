@@ -48,8 +48,8 @@ impl Rational {
     /// * If the resulting denominator is 0.
     pub fn new<N, D>(numerator: N, denominator: D) -> Self
     where
-        Self: From<N>,
-        Self: From<D>,
+        N: Into<Self>,
+        D: Into<Self>,
     {
         Self::new_checked(numerator, denominator).expect(DENOMINATOR_CANT_BE_ZERO)
     }
@@ -57,11 +57,11 @@ impl Rational {
     /// Construct a new Rational, returning `None` if the denominator is 0.
     pub fn new_checked<N, D>(numerator: N, denominator: D) -> Option<Self>
     where
-        Self: From<N>,
-        Self: From<D>,
+        N: Into<Self>,
+        D: Into<Self>,
     {
-        let numerator = Self::from(numerator);
-        let denominator = Self::from(denominator);
+        let numerator: Self = numerator.into();
+        let denominator: Self = denominator.into();
 
         let num = numerator.numerator() * denominator.denominator();
         let den = numerator.denominator() * denominator.numerator();
@@ -85,9 +85,9 @@ impl Rational {
     /// ```
     pub fn from_mixed<T>(whole: i128, fract: T) -> Self
     where
-        Self: From<T>,
+        T: Into<Self>,
     {
-        let fract = Self::from(fract);
+        let fract: Self = fract.into();
         Self::integer(whole) + fract
     }
 
@@ -235,9 +235,9 @@ impl Rational {
     /// ```
     pub fn checked_add<T>(self, rhs: T) -> Option<Self>
     where
-        Self: From<T>,
+        T: Into<Self>,
     {
-        let rhs = Rational::from(rhs);
+        let rhs: Self = rhs.into();
         let gcd = gcd(self.denominator(), rhs.denominator());
         let lcm = self
             .denominator()
@@ -271,9 +271,9 @@ impl Rational {
     /// ```
     pub fn checked_mul<T>(self, rhs: T) -> Option<Self>
     where
-        Self: From<T>,
+        T: Into<Self>,
     {
-        let rhs = Rational::from(rhs);
+        let rhs: Self = rhs.into();
         let (self_num, self_den) = (self.numerator(), self.denominator());
         let (rhs_num, rhs_den) = (rhs.numerator(), rhs.denominator());
         let num_den_gcd = gcd(self_num, rhs_den);
@@ -304,9 +304,9 @@ impl Rational {
     /// ```
     pub fn checked_sub<T>(self, rhs: T) -> Option<Self>
     where
-        Self: From<T>,
+        T: Into<Self>,
     {
-        let rhs = Self::from(rhs);
+        let rhs: Self = rhs.into();
         self.checked_add::<Rational>(-rhs)
     }
 
@@ -329,9 +329,9 @@ impl Rational {
     /// ```
     pub fn checked_div<T>(self, rhs: T) -> Option<Self>
     where
-        Self: From<T>,
+        T: Into<Self>,
     {
-        let rhs = Self::from(rhs);
+        let rhs: Self = rhs.into();
         self.checked_mul::<Rational>(rhs.inverse())
     }
 
@@ -621,12 +621,12 @@ impl_from!(i128);
 
 impl<T, U> From<(T, U)> for Rational
 where
-    Self: From<T>,
-    Self: From<U>,
+    T: Into<Rational>,
+    U: Into<Rational>,
 {
     fn from((n, d): (T, U)) -> Self {
-        let n = Self::from(n);
-        let d = Self::from(d);
+        let n: Self = n.into();
+        let d: Self = d.into();
 
         Self::new(n, d)
     }
@@ -928,6 +928,10 @@ mod tests {
 
     #[test]
     fn readme_test() {
+        // A minimal library for representing rational numbers (ratios of integers).
+
+        // ## Construction
+
         // Rationals are automatically reduced when created:
         let one_half = Rational::new(1, 2);
         let two_quarters = Rational::new(2, 4);
@@ -941,11 +945,17 @@ mod tests {
         let one_half_over_one_quarter = Rational::new((1, 2), (1, 4));
         assert_eq!(one_half_over_one_quarter, Rational::new(2, 1));
 
-        // Operations are implemented for Rationals and integers:
+        // ## Mathematical operations
+
+        // Operations and comparisons are implemented for Rationals and integers:
         let one_ninth = Rational::new(1, 9);
         assert_eq!(one_ninth + Rational::new(5, 4), Rational::new(49, 36));
         assert_eq!(one_ninth - 4, Rational::new(-35, 9));
         assert_eq!(one_ninth / Rational::new(21, 6), Rational::new(2, 63));
+        assert!(one_ninth < Rational::new(1, 8));
+        assert!(one_ninth < 1);
+
+        // ## Other properties
 
         // Inverse:
         let eight_thirds = Rational::new(8, 3);

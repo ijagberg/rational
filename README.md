@@ -20,11 +20,13 @@ assert_eq!(one_half_over_one_quarter, Rational::new(2, 1));
 ## Mathematical operations
 
 ```rust
-// Operations are implemented for Rationals and integers:
+// Operations and comparisons are implemented for Rationals and integers:
 let one_ninth = Rational::new(1, 9);
 assert_eq!(one_ninth + Rational::new(5, 4), Rational::new(49, 36));
 assert_eq!(one_ninth - 4, Rational::new(-35, 9));
 assert_eq!(one_ninth / Rational::new(21, 6), Rational::new(2, 63));
+assert!(one_ninth < Rational::new(1, 8));
+assert!(one_ninth < 1);
 ```
 
 ## Other properties
