@@ -3,8 +3,11 @@
 pub mod extras;
 mod ops;
 
+#[cfg(feature = "num-traits")]
+mod num;
+
 use extras::gcd;
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 const DENOMINATOR_CANT_BE_ZERO: &str = "denominator can't be zero";
 
@@ -332,7 +335,7 @@ impl Rational {
         self.checked_mul::<Rational>(rhs.inverse())
     }
 
-    /// Raises self to the power of `exp`.
+    /// Computes `self^exp`.
     ///
     /// ## Notes
     /// Unlike the `pow` methods in `std`, this supports negative exponents, returning the inverse of the result.
@@ -358,6 +361,21 @@ impl Rational {
         }
     }
 
+    /// Checked exponentiation. Computes `self^exp`, returning `None` if overflow occurred.
+    ///
+    /// ## Notes
+    /// Unlike the `pow` methods in `std`, this supports negative exponents, returning the inverse of the result.
+    /// The exponent still needs to be an integer, since a rational number raised to the power of another rational number may be irrational.
+    ///
+    /// ## Panics
+    /// * If the numerator is 0 and `exp` is negative (since a negative exponent will result in an inversed fraction).
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert_eq!(Rational::new(2, 3).pow(2), Rational::new(4, 9));
+    /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
+    /// ```
     pub fn checked_pow(self, exp: i32) -> Option<Self> {
         if self == Self::zero() && exp.is_negative() {
             return None;
@@ -371,6 +389,26 @@ impl Rational {
             Some(result.inverse())
         } else {
             Some(result)
+        }
+    }
+
+    /// Checked negation. Computes `-self`, returning `None` if overflow occurred.
+    ///
+    /// ## Notes
+    /// This only returns `None` if `self.numerator() == i128::MIN`.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).checked_neg(), Some(Rational::new(-1, 2)));
+    /// assert_eq!(Rational::new(-1, 2).checked_neg(), Some(Rational::new(1, 2)));
+    /// assert_eq!(Rational::new(i128::MIN, 1).checked_neg(), None);
+    /// ```
+    pub fn checked_neg(self) -> Option<Self> {
+        if self.numerator() == i128::MIN {
+            None
+        } else {
+            Some(-self)
         }
     }
 
@@ -446,6 +484,81 @@ impl Rational {
         let fract = Self::new(rem, self.denominator());
         debug_assert_eq!(whole + fract, self);
         (whole, fract)
+    }
+
+    /// Returns the nearest integer to `self`. If a value is half-way between two
+    /// integers, round away from `0.0`.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(1, 2).round(), Rational::integer(1));
+    /// assert_eq!(Rational::new(-1, 2).round(), Rational::integer(-1));
+    /// ```
+    pub fn round(self) -> Self {
+        if self.is_positive() {
+            let left = Self::integer(self.numerator() / self.denominator());
+            let right = left + 1;
+            let dist_to_left = self - left;
+            let dist_to_right = right - self;
+
+            dbg!(left, right, dist_to_left, dist_to_right);
+
+            if dist_to_right <= dist_to_left {
+                right
+            } else {
+                left
+            }
+        } else if self.is_negative() {
+            let right = Self::integer(self.numerator() / self.denominator());
+            let left = right - 1;
+            let dist_to_left = self - left;
+            let dist_to_right = right - self;
+
+            dbg!(right, left, dist_to_left, dist_to_right);
+            if dist_to_left <= dist_to_right {
+                left
+            } else {
+                right
+            }
+        } else {
+            self
+        }
+    }
+
+    /// Converts a string slice in a given base to a `Rational`.
+    ///
+    /// The string is expected be in one of the following two forms:
+    /// * `"x/y"`, where `x` and `y` follow the format expected by the `from_str_radix` methods in the standard library.
+    /// * `"x"`, where `x` follow the format expected by the `from_str_radix` methods in the standard library.
+    ///
+    /// ## Panics
+    /// * If `radix` is not in the range from 2 to 36.
+    ///
+    /// ## Examples
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::from_str_radix("1/2", 10), Ok(Rational::new(1, 2)));
+    /// assert_eq!(Rational::from_str_radix("110", 2), Ok(Rational::integer(6)));
+    /// assert_eq!(Rational::from_str_radix("-1/2", 10), Ok(Rational::new(-1, 2)));
+    /// assert_eq!(Rational::from_str_radix("1/-2", 10), Ok(Rational::new(-1, 2)));
+    /// ```
+    ///
+    pub fn from_str_radix(s: &str, radix: u32) -> Result<Self, ParseRationalError> {
+        match s.split_once('/') {
+            Some((num, den)) => {
+                let num = i128::from_str_radix(num, radix)
+                    .map_err(|e| ParseRationalError::ParseIntError(e))?;
+                let den = i128::from_str_radix(den, radix)
+                    .map_err(|e| ParseRationalError::ParseIntError(e))?;
+                Ok(Self::new(num, den))
+            }
+            None => {
+                let num = i128::from_str_radix(s, radix)
+                    .map_err(|e| ParseRationalError::ParseIntError(e))?;
+                Ok(Self::integer(num))
+            }
+        }
     }
 
     fn reduce(&mut self) {
@@ -648,6 +761,19 @@ impl Display for Rational {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/{}", self.numerator, self.denominator)
     }
+}
+
+impl FromStr for Rational {
+    type Err = ParseRationalError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_str_radix(s, 10)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ParseRationalError {
+    ParseIntError(std::num::ParseIntError),
 }
 
 #[cfg(test)]
@@ -903,6 +1029,37 @@ mod tests {
         assert!(Rational::integer(i128::MAX)
             .checked_mul(i128::MAX)
             .is_none());
+    }
+
+    #[test]
+    fn round_test() {
+        assert_eq!(r(1, 2).round(), r(1, 1));
+        assert_eq!(r(-1, 2).round(), r(-1, 1));
+        assert_eq!(r(7, 3).round(), r(2, 1));
+        assert_eq!(r(111, 4).round(), r(28, 1));
+        assert_eq!(r(0, 1).round(), r(0, 1));
+        assert_eq!(r(4, 2).round(), r(2, 1));
+    }
+
+    #[test]
+    fn parse_rational_test() {
+        assert_eq!("1/2".parse(), Ok(r(1, 2)));
+        assert_eq!("12".parse(), Ok(r(12, 1)));
+        assert!(" 1/2".parse::<Rational>().is_err());
+        assert!("1//2".parse::<Rational>().is_err());
+        assert!("1/222/".parse::<Rational>().is_err());
+        assert!("1/222/3".parse::<Rational>().is_err());
+        assert!("/2".parse::<Rational>().is_err());
+
+        assert_eq!(Rational::from_str_radix("110", 2), Ok(Rational::new(6, 1)));
+        assert_eq!(
+            Rational::from_str_radix("110/111", 2),
+            Ok(Rational::new(6, 7))
+        );
+        assert_eq!(
+            Rational::from_str_radix("-1/-2", 10),
+            Ok(Rational::new(1, 2))
+        );
     }
 
     fn random_rat() -> Rational {
