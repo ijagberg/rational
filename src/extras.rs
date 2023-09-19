@@ -1,4 +1,4 @@
-//! Contains some helper functions that can be useful.
+//! Contains some helper functions that can be useful and/or fun.
 
 use crate::Rational;
 
@@ -14,7 +14,17 @@ pub fn r(n: i128, d: i128) -> Rational {
     Rational::new(n, d)
 }
 
-/// Calculate the greatest common divisor of two numbers.
+/// Calculate the greatest common divisor of two numbers using [Stein's algorithm](https://en.wikipedia.org/wiki/Binary_GCD_algorithm).
+///
+/// ## Panics
+/// * If the result does not fit in the `i128` primitive type. This only happens in the cases below.
+/// ```rust,no_run
+///   # use rational::extras::*;
+///   // both of these are equal to `i128::MAX + 1`, which does not fit in an `i128`
+///   gcd(i128::MIN, 0);
+///   gcd(0, i128::MIN);
+///   gcd(i128::MIN, i128::MIN);
+/// ```
 ///
 /// ## Example
 /// ```rust
@@ -24,14 +34,37 @@ pub fn r(n: i128, d: i128) -> Rational {
 /// assert_eq!(gcd(-899, 957), 29);
 /// ```
 pub fn gcd(mut a: i128, mut b: i128) -> i128 {
-    a = a.abs();
-    b = b.abs();
-    while b != 0 {
-        let temp = b;
-        b = a % b;
-        a = temp;
+    if a == 0 || b == 0 {
+        return return_gcd(a, b, a | b);
     }
-    a
+
+    let factors_of_two = (a | b).trailing_zeros();
+
+    if a == i128::MIN || b == i128::MIN {
+        return return_gcd(a, b, 1 << factors_of_two);
+    }
+
+    a = a.abs() >> a.trailing_zeros();
+    b = b.abs() >> b.trailing_zeros();
+
+    while a != b {
+        if a > b {
+            a -= b;
+            a >>= a.trailing_zeros();
+        } else {
+            b -= a;
+            b >>= b.trailing_zeros();
+        }
+    }
+    a << factors_of_two
+}
+
+fn return_gcd(a: i128, b: i128, g: i128) -> i128 {
+    if g == i128::MIN {
+        panic!("the gcd of {} and {} is equal to i128::MAX+1, which does not fit in the i128 primitive type", a, b)
+    } else {
+        g.abs()
+    }
 }
 
 /// Calculate the least common multiple of two numbers.
@@ -64,6 +97,16 @@ pub fn lcm_checked(a: i128, b: i128) -> Option<i128> {
     a.abs().checked_mul(b.abs().checked_div(g)?)
 }
 
+/// Checks if `l` and `r` are [coprime](https://en.wikipedia.org/wiki/Coprime_integers). Shorthand for `gcd(l, r) == 1`.
+///
+/// ## Example
+/// ```rust
+/// # use rational::extras::*;
+/// assert!(is_coprime(8, 9));
+/// assert!(is_coprime(7, 9));
+/// assert!(!is_coprime(6, 9));
+/// assert!(is_coprime(-1, 1));
+/// ```
 pub fn is_coprime(l: i128, r: i128) -> bool {
     gcd(l, r) == 1
 }
@@ -155,6 +198,26 @@ mod tests {
         eq(5, 4, 1);
         eq(12, 4, 4);
         eq(-74, 44, 2);
+        eq(-2, -4, 2);
+        eq(i128::MIN, 1, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn gcd_should_panic_test_1() {
+        dbg!(gcd(i128::MIN, 0));
+    }
+
+    #[test]
+    #[should_panic]
+    fn gcd_should_panic_test_2() {
+        dbg!(gcd(0, i128::MIN));
+    }
+
+    #[test]
+    #[should_panic]
+    fn gcd_should_panic_test_3() {
+        dbg!(gcd(i128::MIN, i128::MIN));
     }
 
     #[test]
