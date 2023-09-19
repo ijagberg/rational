@@ -40,3 +40,7 @@ let (whole, fractional) = eight_thirds.mixed_fraction();
 assert_eq!(whole, 2);
 assert_eq!(fractional, Rational::new(2, 3));
 ```
+
+## Features
+
+- Enable the `num-traits` feature to gain access to implementations of many of the traits defined in the `num-traits` crate for `Rationals`
