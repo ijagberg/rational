@@ -25,7 +25,7 @@ pub fn r(n: i128, d: i128) -> Rational {
 ///   gcd(0, i128::MIN);
 ///   gcd(i128::MIN, i128::MIN);
 /// ```
-/// 
+///
 /// ## Example
 /// ```rust
 /// # use rational::extras::*;
@@ -63,7 +63,7 @@ fn return_gcd(a: i128, b: i128, g: i128) -> i128 {
     if g == i128::MIN {
         panic!("the gcd of {} and {} is equal to i128::MAX+1, which does not fit in the i128 primitive type", a, b)
     } else {
-        return g.abs();
+        g.abs()
     }
 }
 

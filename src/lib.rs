@@ -578,15 +578,15 @@ impl Rational {
     pub fn from_str_radix(s: &str, radix: u32) -> Result<Self, ParseRationalError> {
         match s.split_once('/') {
             Some((num, den)) => {
-                let num = i128::from_str_radix(num, radix)
-                    .map_err(|e| ParseRationalError::ParseIntError(e))?;
-                let den = i128::from_str_radix(den, radix)
-                    .map_err(|e| ParseRationalError::ParseIntError(e))?;
+                let num =
+                    i128::from_str_radix(num, radix).map_err(ParseRationalError::ParseIntError)?;
+                let den =
+                    i128::from_str_radix(den, radix).map_err(ParseRationalError::ParseIntError)?;
                 Ok(Self::new(num, den))
             }
             None => {
-                let num = i128::from_str_radix(s, radix)
-                    .map_err(|e| ParseRationalError::ParseIntError(e))?;
+                let num =
+                    i128::from_str_radix(s, radix).map_err(ParseRationalError::ParseIntError)?;
                 Ok(Self::integer(num))
             }
         }

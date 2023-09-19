@@ -1,6 +1,8 @@
-use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedNeg, CheckedSub, Inv, Num, One, Zero, FromPrimitive, Signed};
-
 use crate::{ParseRationalError, Rational};
+use num_traits::{
+    CheckedAdd, CheckedDiv, CheckedMul, CheckedNeg, CheckedSub, FromPrimitive, Inv, Num, One, Pow,
+    Signed, Zero,
+};
 
 impl CheckedAdd for Rational {
     fn checked_add(&self, v: &Self) -> Option<Self> {
@@ -56,7 +58,7 @@ impl Zero for Rational {
     }
 }
 
-impl num_traits::Pow<i32> for Rational {
+impl Pow<i32> for Rational {
     type Output = Self;
 
     fn pow(self, rhs: i32) -> Self::Output {
