@@ -502,8 +502,6 @@ impl Rational {
             let dist_to_left = self - left;
             let dist_to_right = right - self;
 
-            dbg!(left, right, dist_to_left, dist_to_right);
-
             if dist_to_right <= dist_to_left {
                 right
             } else {
@@ -515,7 +513,6 @@ impl Rational {
             let dist_to_left = self - left;
             let dist_to_right = right - self;
 
-            dbg!(right, left, dist_to_left, dist_to_right);
             if dist_to_left <= dist_to_right {
                 left
             } else {
@@ -523,6 +520,40 @@ impl Rational {
             }
         } else {
             self
+        }
+    }
+
+    /// Returns the largest integer less than or equal to self.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(4, 3).floor(), Rational::integer(1));
+    /// assert_eq!(Rational::new(-3, 2).floor(), Rational::integer(-2));
+    /// ```
+    pub fn floor(self) -> Self {
+        let r = Self::integer(self.numerator() / self.denominator());
+        if self.is_negative() && self != r {
+            r - 1
+        } else {
+            r
+        }
+    }
+
+    /// Returns the smallest integer greater than or equal to self.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    /// assert_eq!(Rational::new(4, 3).ceil(), Rational::integer(2));
+    /// assert_eq!(Rational::new(-3, 2).ceil(), Rational::integer(-1));
+    /// ```
+    pub fn ceil(self) -> Self {
+        let r = Self::integer(self.numerator() / self.denominator());
+        if self.is_positive() && self != r {
+            r + 1
+        } else {
+            r
         }
     }
 
@@ -1039,6 +1070,21 @@ mod tests {
         assert_eq!(r(111, 4).round(), r(28, 1));
         assert_eq!(r(0, 1).round(), r(0, 1));
         assert_eq!(r(4, 2).round(), r(2, 1));
+    }
+
+    #[test]
+    fn floor_test() {
+        assert_eq!(r(1, 2).floor(), 0);
+        assert_eq!(r(0, 1).floor(), 0);
+        assert_eq!(r(5, 1).floor(), 5);
+        assert_eq!(r(-1, 2).floor(), -1);
+    }
+
+    #[test]
+    fn ceil_test() {
+        assert_eq!(r(1, 2).ceil(), 1);
+        assert_eq!(r(0, 1).ceil(), 0);
+        assert_eq!(r(-4, 3).ceil(), -1);
     }
 
     #[test]
