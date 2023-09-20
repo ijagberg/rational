@@ -12,6 +12,14 @@ impl Neg for Rational {
     }
 }
 
+impl Neg for &Rational {
+    type Output = Rational;
+
+    fn neg(self) -> Self::Output {
+        (*self) * -1_i32
+    }
+}
+
 impl Product for Rational {
     fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Rational::one(), |a, b| a * b)
@@ -41,6 +49,30 @@ mod add {
         }
     }
 
+    impl Add<&Rational> for Rational {
+        type Output = Rational;
+
+        fn add(self, rhs: &Rational) -> Self::Output {
+            self + *rhs
+        }
+    }
+
+    impl Add<Rational> for &Rational {
+        type Output = Rational;
+
+        fn add(self, rhs: Rational) -> Self::Output {
+            *self + rhs
+        }
+    }
+
+    impl Add<&Rational> for &Rational {
+        type Output = Rational;
+
+        fn add(self, rhs: &Rational) -> Self::Output {
+            *self + *rhs
+        }
+    }
+
     impl AddAssign<Rational> for Rational {
         fn add_assign(&mut self, rhs: Rational) {
             let result = *self + rhs;
@@ -53,16 +85,32 @@ mod add {
             impl Add<$type> for Rational {
                 type Output = Rational;
 
-                fn add(self, rhs: $type) -> Self {
+                fn add(self, rhs: $type) -> Self::Output {
                     self + Rational::from(rhs)
+                }
+            }
+
+            impl Add<$type> for &Rational {
+                type Output = Rational;
+
+                fn add(self, rhs: $type) -> Self::Output {
+                    *self + rhs
                 }
             }
 
             impl Add<Rational> for $type {
                 type Output = Rational;
 
-                fn add(self, rhs: Rational) -> Rational {
+                fn add(self, rhs: Rational) -> Self::Output {
                     rhs + self
+                }
+            }
+
+            impl Add<&Rational> for $type {
+                type Output = Rational;
+
+                fn add(self, rhs: &Rational) -> Self::Output {
+                    *rhs + self
                 }
             }
 
@@ -84,6 +132,76 @@ mod add {
     impl_add!(i32);
     impl_add!(i64);
     impl_add!(i128);
+    impl_add!(&u8);
+    impl_add!(&u16);
+    impl_add!(&u32);
+    impl_add!(&u64);
+    impl_add!(&i8);
+    impl_add!(&i16);
+    impl_add!(&i32);
+    impl_add!(&i64);
+    impl_add!(&i128);
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn rational_rational_addition_test() {
+            let assign = |r1, r2| {
+                let mut r1_copy = r1;
+                r1_copy += r2;
+                r1_copy
+            };
+            for (r1, r2, sum) in [
+                (r(1, 2), r(3, 1), r(7, 2)),
+                (r(1, 2), r(-3, 2), r(-1, 1)),
+                (r(-20, 19), r(-20, 23), r(-840, 437)),
+            ] {
+                let message = format!("{r1} + {r2} = {sum}");
+                assert_eq!(r1 + r2, sum, "{message}");
+                assert_eq!(r1 + &r2, sum, "{message}");
+                assert_eq!(&r1 + r2, sum, "{message}");
+                assert_eq!(&r1 + &r2, sum, "{message}");
+                assert_eq!(assign(r1, r2), sum);
+
+                let message = format!("{r2} + {r1} = {sum}");
+                assert_eq!(r2 + r1, sum, "{message}");
+                assert_eq!(r2 + &r1, sum, "{message}");
+                assert_eq!(&r2 + r1, sum, "{message}");
+                assert_eq!(&r2 + &r1, sum, "{message}");
+                assert_eq!(assign(r2, r1), sum);
+            }
+        }
+
+        #[test]
+        fn rational_integer_addition_test() {
+            let assign = |rat, int| {
+                let mut rat_copy = rat;
+                rat_copy += int;
+                rat_copy
+            };
+            for (rat, int, sum) in [
+                (r(1, 2), 10, r(21, 2)),
+                (r(1, 2), 217, r(435, 2)),
+                (r(-15, 14), 101, r(1399, 14)),
+                (r(-15, 14), -101, r(-1429, 14)),
+            ] {
+                let message = format!("{rat} + {int} = {sum}");
+                assert_eq!(rat + int, sum, "{message}");
+                assert_eq!(rat + &int, sum, "{message}");
+                assert_eq!(&rat + int, sum, "{message}");
+                assert_eq!(&rat + &int, sum, "{message}");
+                assert_eq!(assign(rat, int), sum);
+
+                let message = format!("{int} + {rat} = {sum}");
+                assert_eq!(int + rat, sum, "{message}");
+                assert_eq!(int + &rat, sum, "{message}");
+                assert_eq!(&int + rat, sum, "{message}");
+                assert_eq!(&int + &rat, sum, "{message}");
+            }
+        }
+    }
 }
 
 mod mul {
@@ -102,6 +220,30 @@ mod mul {
         }
     }
 
+    impl Mul<&Rational> for Rational {
+        type Output = Rational;
+
+        fn mul(self, rhs: &Rational) -> Self::Output {
+            self * *rhs
+        }
+    }
+
+    impl Mul<Rational> for &Rational {
+        type Output = Rational;
+
+        fn mul(self, rhs: Rational) -> Self::Output {
+            *self * rhs
+        }
+    }
+
+    impl Mul<&Rational> for &Rational {
+        type Output = Rational;
+
+        fn mul(self, rhs: &Rational) -> Self::Output {
+            *self * *rhs
+        }
+    }
+
     impl MulAssign<Rational> for Rational {
         fn mul_assign(&mut self, rhs: Rational) {
             let result = *self * rhs;
@@ -114,16 +256,32 @@ mod mul {
             impl Mul<$type> for Rational {
                 type Output = Rational;
 
-                fn mul(self, rhs: $type) -> Rational {
+                fn mul(self, rhs: $type) -> Self::Output {
                     self * Rational::from(rhs)
+                }
+            }
+
+            impl Mul<$type> for &Rational {
+                type Output = Rational;
+
+                fn mul(self, rhs: $type) -> Self::Output {
+                    *self * rhs
                 }
             }
 
             impl Mul<Rational> for $type {
                 type Output = Rational;
 
-                fn mul(self, rhs: Rational) -> Rational {
+                fn mul(self, rhs: Rational) -> Self::Output {
                     rhs * self
+                }
+            }
+
+            impl Mul<&Rational> for $type {
+                type Output = Rational;
+
+                fn mul(self, rhs: &Rational) -> Self::Output {
+                    *rhs * self
                 }
             }
 
@@ -145,6 +303,76 @@ mod mul {
     impl_mul!(i32);
     impl_mul!(i64);
     impl_mul!(i128);
+    impl_mul!(&u8);
+    impl_mul!(&u16);
+    impl_mul!(&u32);
+    impl_mul!(&u64);
+    impl_mul!(&i8);
+    impl_mul!(&i16);
+    impl_mul!(&i32);
+    impl_mul!(&i64);
+    impl_mul!(&i128);
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn rational_rational_multiplication_test() {
+            let assign = |r1, r2| {
+                let mut r1_copy = r1;
+                r1_copy *= r2;
+                r1_copy
+            };
+            for (r1, r2, prod) in [
+                (r(5, 9), r(10, 31), r(50, 279)),
+                (r(-5, 10), r(100, 10), r(-5, 1)),
+                (r(-1, 2), r(-2, 3), r(1, 3)),
+            ] {
+                let message = format!("{r1} * {r2} = {prod}");
+                assert_eq!(r1 * r2, prod, "{message}");
+                assert_eq!(r1 * &r2, prod, "{message}");
+                assert_eq!(&r1 * r2, prod, "{message}");
+                assert_eq!(&r1 * &r2, prod, "{message}");
+                assert_eq!(assign(r1, r2), prod);
+
+                let message = format!("{r2} * {r1} = {prod}");
+                assert_eq!(r2 * r1, prod, "{message}");
+                assert_eq!(r2 * &r1, prod, "{message}");
+                assert_eq!(&r2 * r1, prod, "{message}");
+                assert_eq!(&r2 * &r1, prod, "{message}");
+                assert_eq!(assign(r2, r1), prod);
+            }
+        }
+
+        #[test]
+        fn rational_integer_multiplication_test() {
+            let assign = |rat, int| {
+                let mut rat_copy = rat;
+                rat_copy *= int;
+                rat_copy
+            };
+            for (rat, int, prod) in [
+                (r(5, 9), 2, r(10, 9)),
+                (r(5, 9), -3, r(-5, 3)),
+                (r(5, 11), 27, r(135, 11)),
+                (r(-13, 5), -9, r(117, 5)),
+            ] {
+                let message = format!("{rat} * {int} = {prod}");
+                assert_eq!(rat * int, prod, "{message}");
+                assert_eq!(rat * &int, prod, "{message}");
+                assert_eq!(&rat * int, prod, "{message}");
+                assert_eq!(&rat * &int, prod, "{message}");
+                assert_eq!(assign(rat, int), prod);
+
+                let message = format!("{int} * {rat} = {prod}");
+                assert_eq!(int * rat, prod, "{message}");
+                assert_eq!(int * &rat, prod, "{message}");
+                assert_eq!(&int * rat, prod, "{message}");
+                assert_eq!(&int * &rat, prod, "{message}");
+            }
+        }
+    }
 }
 
 mod sub {
@@ -153,8 +381,32 @@ mod sub {
     impl Sub for Rational {
         type Output = Rational;
 
-        fn sub(self, rhs: Rational) -> Rational {
+        fn sub(self, rhs: Rational) -> Self::Output {
             Add::<Rational>::add(self, Neg::neg(rhs))
+        }
+    }
+
+    impl Sub<&Rational> for Rational {
+        type Output = Rational;
+
+        fn sub(self, rhs: &Rational) -> Self::Output {
+            self - *rhs
+        }
+    }
+
+    impl Sub<Rational> for &Rational {
+        type Output = Rational;
+
+        fn sub(self, rhs: Rational) -> Self::Output {
+            *self - rhs
+        }
+    }
+
+    impl Sub<&Rational> for &Rational {
+        type Output = Rational;
+
+        fn sub(self, rhs: &Rational) -> Self::Output {
+            *self - *rhs
         }
     }
 
@@ -170,16 +422,32 @@ mod sub {
             impl Sub<$type> for Rational {
                 type Output = Rational;
 
-                fn sub(self, rhs: $type) -> Rational {
+                fn sub(self, rhs: $type) -> Self::Output {
                     self - Rational::from(rhs)
+                }
+            }
+
+            impl Sub<$type> for &Rational {
+                type Output = Rational;
+
+                fn sub(self, rhs: $type) -> Self::Output {
+                    *self - rhs
                 }
             }
 
             impl Sub<Rational> for $type {
                 type Output = Rational;
 
-                fn sub(self, rhs: Rational) -> Rational {
-                    Rational::integer(self as i128) - rhs
+                fn sub(self, rhs: Rational) -> Self::Output {
+                    Rational::from(self) - rhs
+                }
+            }
+
+            impl Sub<&Rational> for $type {
+                type Output = Rational;
+
+                fn sub(self, rhs: &Rational) -> Self::Output {
+                    Rational::from(self) - *rhs
                 }
             }
 
@@ -201,16 +469,102 @@ mod sub {
     impl_sub!(i32);
     impl_sub!(i64);
     impl_sub!(i128);
+    impl_sub!(&u8);
+    impl_sub!(&u16);
+    impl_sub!(&u32);
+    impl_sub!(&u64);
+    impl_sub!(&i8);
+    impl_sub!(&i16);
+    impl_sub!(&i32);
+    impl_sub!(&i64);
+    impl_sub!(&i128);
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn rational_rational_subtraction_test() {
+            let assign = |r1, r2| {
+                let mut r1_copy = r1;
+                r1_copy -= r2;
+                r1_copy
+            };
+            for (r1, r2, diff) in [
+                (r(4, 3), r(1, 2), r(5, 6)),
+                (r(4, 3), r(5, 3), r(-1, 3)),
+                (r(-1, 3), r(-11, 7), r(26, 21)),
+            ] {
+                assert_eq!(r1 - r2, diff, "{r1} - {r2} = {diff}");
+                assert_eq!(r1 - &r2, diff, "{r1} - {r2} = {diff}");
+                assert_eq!(&r1 - r2, diff, "{r1} - {r2} = {diff}");
+                assert_eq!(&r1 - &r2, diff, "{r1} - {r2} = {diff}");
+                assert_eq!(assign(r1, r2), diff);
+            }
+        }
+
+        #[test]
+        fn rational_integer_subtraction_test() {
+            let assign = |rat, int| {
+                let mut rat_copy = rat;
+                rat_copy -= int;
+                rat_copy
+            };
+            for (rat, int, diff) in [
+                (r(2, 3), 5, -r(13, 3)),
+                (r(17, 15), -12, r(197, 15)),
+                (r(-11, 9), 4, r(-47, 9)),
+                (r(-19, 11), -3, r(14, 11)),
+            ] {
+                let message = format!("{rat} - {int} = {diff}");
+                assert_eq!(rat - int, diff, "{message}");
+                assert_eq!(rat - &int, diff, "{message}");
+                assert_eq!(&rat - int, diff, "{message}");
+                assert_eq!(&rat - &int, diff, "{message}");
+                assert_eq!(assign(rat, int), diff);
+
+                let message = format!("{int} - {rat} = {diff}");
+                assert_eq!(int - rat, -diff, "{message}");
+                assert_eq!(int - &rat, -diff, "{message}");
+                assert_eq!(&int - rat, -diff, "{message}");
+                assert_eq!(&int - &rat, -diff, "{message}");
+            }
+        }
+    }
 }
 
 mod div {
     use super::*;
 
-    impl Div for Rational {
+    impl Div<Rational> for Rational {
         type Output = Self;
 
         fn div(self, rhs: Rational) -> Self::Output {
-            Rational::new::<Rational, Rational>(self, rhs)
+            Rational::new(self, rhs)
+        }
+    }
+
+    impl Div<&Rational> for Rational {
+        type Output = Rational;
+
+        fn div(self, rhs: &Rational) -> Self::Output {
+            self / *rhs
+        }
+    }
+
+    impl Div<Rational> for &Rational {
+        type Output = Rational;
+
+        fn div(self, rhs: Rational) -> Self::Output {
+            *self / rhs
+        }
+    }
+
+    impl Div<&Rational> for &Rational {
+        type Output = Rational;
+
+        fn div(self, rhs: &Rational) -> Self::Output {
+            *self / *rhs
         }
     }
 
@@ -226,7 +580,15 @@ mod div {
             impl Div<$type> for Rational {
                 type Output = Rational;
 
-                fn div(self, rhs: $type) -> Rational {
+                fn div(self, rhs: $type) -> Self::Output {
+                    self / Rational::from(rhs)
+                }
+            }
+
+            impl Div<$type> for &Rational {
+                type Output = Rational;
+
+                fn div(self, rhs: $type) -> Self::Output {
                     self / Rational::from(rhs)
                 }
             }
@@ -234,8 +596,16 @@ mod div {
             impl Div<Rational> for $type {
                 type Output = Rational;
 
-                fn div(self, rhs: Rational) -> Rational {
-                    Rational::integer(self as i128) / rhs
+                fn div(self, rhs: Rational) -> Self::Output {
+                    Rational::from(self) / rhs
+                }
+            }
+
+            impl Div<&Rational> for $type {
+                type Output = Rational;
+
+                fn div(self, rhs: &Rational) -> Self::Output {
+                    Rational::from(self) / rhs
                 }
             }
 
@@ -257,6 +627,78 @@ mod div {
     impl_div!(i32);
     impl_div!(i64);
     impl_div!(i128);
+    impl_div!(&u8);
+    impl_div!(&u16);
+    impl_div!(&u32);
+    impl_div!(&u64);
+    impl_div!(&i8);
+    impl_div!(&i16);
+    impl_div!(&i32);
+    impl_div!(&i64);
+    impl_div!(&i128);
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn rational_rational_division_test() {
+            let assign = |r1, r2| {
+                let mut r1_copy = r1;
+                r1_copy /= r2;
+                r1_copy
+            };
+            for (r1, r2, ans) in [
+                (r(5, 9), r(10, 31), r(31, 18)),
+                (r(50, 49), r(11, 12), r(600, 539)),
+                (r(-11, 9), r(2, 3), r(-11, 6)),
+                (r(-19, 11), r(-1, 2), r(38, 11)),
+            ] {
+                let message = format!("{r1} / {r2} = {ans}");
+                assert_eq!(r1 / r2, ans, "{message}");
+                assert_eq!(r1 / &r2, ans, "{message}");
+                assert_eq!(&r1 / r2, ans, "{message}");
+                assert_eq!(&r1 / &r2, ans, "{message}");
+                assert_eq!(assign(r1, r2), ans);
+
+                let ans = ans.inverse();
+                let message = format!("{r2} / {r1} = {ans}");
+                assert_eq!(r2 / r1, ans, "{message}");
+                assert_eq!(r2 / &r1, ans, "{message}");
+                assert_eq!(&r2 / r1, ans, "{message}");
+                assert_eq!(&r2 / &r1, ans, "{message}");
+                assert_eq!(assign(r2, r1), ans);
+            }
+        }
+
+        #[test]
+        fn rational_integer_divison_test() {
+            let assign = |rat, int| {
+                let mut rat_copy = rat;
+                rat_copy /= int;
+                rat_copy
+            };
+            for (rat, int, ans) in [
+                (r(1, 1), 6, r(1, 6)),
+                (r(3, 4), 6, r(1, 8)),
+                (r(4, 1), -6, r(-4, 6)),
+            ] {
+                let message = format!("{rat} / {int} = {ans}");
+                assert_eq!(rat / int, ans, "{message}");
+                assert_eq!(rat / &int, ans, "{message}");
+                assert_eq!(&rat / int, ans, "{message}");
+                assert_eq!(&rat / &int, ans, "{message}");
+                assert_eq!(assign(rat, int), ans);
+
+                let ans = ans.inverse();
+                let message = format!("{int} / {rat} = {ans}");
+                assert_eq!(int / rat, ans, "{message}");
+                assert_eq!(int / &rat, ans, "{message}");
+                assert_eq!(&int / rat, ans, "{message}");
+                assert_eq!(&int / &rat, ans, "{message}");
+            }
+        }
+    }
 }
 
 mod rem {
@@ -280,6 +722,30 @@ mod rem {
         }
     }
 
+    impl Rem<&Rational> for Rational {
+        type Output = Rational;
+
+        fn rem(self, rhs: &Rational) -> Self::Output {
+            self % *rhs
+        }
+    }
+
+    impl Rem<Rational> for &Rational {
+        type Output = Rational;
+
+        fn rem(self, rhs: Rational) -> Self::Output {
+            *self % rhs
+        }
+    }
+
+    impl Rem<&Rational> for &Rational {
+        type Output = Rational;
+
+        fn rem(self, rhs: &Rational) -> Self::Output {
+            *self % *rhs
+        }
+    }
+
     impl RemAssign for Rational {
         fn rem_assign(&mut self, rhs: Rational) {
             let result = *self % rhs;
@@ -292,7 +758,15 @@ mod rem {
             impl Rem<$type> for Rational {
                 type Output = Rational;
 
-                fn rem(self, rhs: $type) -> Rational {
+                fn rem(self, rhs: $type) -> Self::Output {
+                    self % Rational::from(rhs)
+                }
+            }
+
+            impl Rem<$type> for &Rational {
+                type Output = Rational;
+
+                fn rem(self, rhs: $type) -> Self::Output {
                     self % Rational::from(rhs)
                 }
             }
@@ -300,8 +774,16 @@ mod rem {
             impl Rem<Rational> for $type {
                 type Output = Rational;
 
-                fn rem(self, rhs: Rational) -> Rational {
-                    Rational::integer(self as i128) % rhs
+                fn rem(self, rhs: Rational) -> Self::Output {
+                    Rational::from(self) % rhs
+                }
+            }
+
+            impl Rem<&Rational> for $type {
+                type Output = Rational;
+
+                fn rem(self, rhs: &Rational) -> Self::Output {
+                    Rational::from(self) % rhs
                 }
             }
 
@@ -323,6 +805,74 @@ mod rem {
     impl_rem!(i32);
     impl_rem!(i64);
     impl_rem!(i128);
+    impl_rem!(&u8);
+    impl_rem!(&u16);
+    impl_rem!(&u32);
+    impl_rem!(&u64);
+    impl_rem!(&i8);
+    impl_rem!(&i16);
+    impl_rem!(&i32);
+    impl_rem!(&i64);
+    impl_rem!(&i128);
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn rational_rational_remainder_test() {
+            let assign = |r1, r2| {
+                let mut r1_copy = r1;
+                r1_copy %= r2;
+                r1_copy
+            };
+
+            for (r1, r2, rem_a, rem_b) in [
+                (r(1, 4), r(1, 2), r(1, 4), r(0, 1)),
+                (r(1, 3), r(1, 4), r(1, 12), r(1, 4)),
+                (r(6, 1), r(2, 1), r(0, 1), r(2, 1)),
+            ] {
+                let message_a = format!("{r1} % {r2} = {rem_a}");
+                assert_eq!(r1 % r2, rem_a, "{message_a}");
+                assert_eq!(r1 % &r2, rem_a, "{message_a}");
+                assert_eq!(&r1 % r2, rem_a, "{message_a}");
+                assert_eq!(&r1 % &r2, rem_a, "{message_a}");
+                assert_eq!(assign(r1, r2), rem_a);
+
+                let message_b = format!("{r2} % {r1} = {rem_b}");
+                assert_eq!(r2 % r1, rem_b, "{message_b}");
+                assert_eq!(r2 % &r1, rem_b, "{message_b}");
+                assert_eq!(&r2 % r1, rem_b, "{message_b}");
+                assert_eq!(&r2 % &r1, rem_b, "{message_b}");
+            }
+        }
+
+        #[test]
+        fn rational_integer_remainder_test() {
+            let assign = |rat, int| {
+                let mut rat_copy = rat;
+                rat_copy %= int;
+                rat_copy
+            };
+            for (rat, int, rem_a, rem_b) in [
+                (r(2, 5), 10, r(4, 10), r(0, 1)),
+                (r(26, 5), 5, r(1, 5), r(5, 1)),
+            ] {
+                let message_a = format!("{rat} % {int} = {rem_a}");
+                assert_eq!(rat % int, rem_a, "{message_a}");
+                assert_eq!(rat % &int, rem_a, "{message_a}");
+                assert_eq!(&rat % int, rem_a, "{message_a}");
+                assert_eq!(&rat % &int, rem_a, "{message_a}");
+                assert_eq!(assign(rat, int), rem_a);
+
+                let message_b = format!("{int} % {rat} = {rem_b}");
+                assert_eq!(int % rat, rem_b, "{message_b}");
+                assert_eq!(int % &rat, rem_b, "{message_b}");
+                assert_eq!(&int % rat, rem_b, "{message_b}");
+                assert_eq!(&int % &rat, rem_b, "{message_b}");
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -350,199 +900,5 @@ mod tests {
         assert_eq!(sum, r(37, 28));
         let sum: Rational = vec![r(-1, 2), r(1, 4), r(4, 7)].into_iter().sum();
         assert_eq!(sum, r(9, 28));
-    }
-
-    #[test]
-    fn rational_plus_rational_test() {
-        let assign = |r1, r2| {
-            let mut r1_copy = r1;
-            r1_copy += r2;
-            r1_copy
-        };
-        for (r1, r2, sum) in [(r(1, 2), r(3, 1), r(7, 2))] {
-            assert_eq!(r1 + r2, sum);
-            assert_eq!(assign(r1, r2), sum);
-            assert_eq!(assign(r2, r1), sum);
-        }
-    }
-
-    #[test]
-    fn integer_plus_rational_test() {
-        let assign = |int, rat| {
-            let mut rat_copy = rat;
-            rat_copy += int;
-            rat_copy
-        };
-        for t @ (int, rat, sum) in [(10, r(1, 2), r(21, 2)), (217, r(1, 2), r(435, 2))] {
-            assert_eq!(int + rat, sum, "{t:?}");
-            assert_eq!(assign(int, rat), sum, "{t:?}");
-        }
-    }
-
-    #[test]
-    fn rational_minus_rational_test() {
-        let assign = |r1, r2| {
-            let mut r1_copy = r1;
-            r1_copy -= r2;
-            r1_copy
-        };
-        for (r1, r2, diff) in [(r(4, 3), r(1, 2), r(5, 6))] {
-            assert_eq!(r1 - r2, diff);
-            assert_eq!(assign(r1, r2), diff);
-
-            assert_eq!(r2 - r1, -1 * diff);
-            assert_eq!(assign(r2, r1), -1 * diff);
-        }
-    }
-
-    #[test]
-    fn integer_minus_rational_test() {
-        let assign = |int, rat| {
-            let mut rat_copy = rat;
-            rat_copy -= int;
-            rat_copy
-        };
-        for (int, rat, diff) in [(5, r(2, 3), r(13, 3))] {
-            assert_eq!(int - rat, diff);
-
-            assert_eq!(rat - int, -1 * diff);
-            assert_eq!(assign(int, rat), -1 * diff);
-        }
-    }
-
-    #[test]
-    fn rational_multiplied_by_rational_test() {
-        let assign = |r1, r2| {
-            let mut r1_copy = r1;
-            r1_copy *= r2;
-            r1_copy
-        };
-        for (r1, r2, prod) in [
-            (r(5, 9), r(10, 31), r(50, 279)),
-            (r(-5, 10), r(100, 10), r(-5, 1)),
-        ] {
-            assert_eq!(r1 * r2, prod);
-            assert_eq!(assign(r1, r2), prod);
-
-            assert_eq!(r2 * r1, prod);
-            assert_eq!(assign(r2, r1), prod);
-
-            assert_eq!((-1 * r1) * r2, -1 * prod);
-            assert_eq!(assign(-1 * r1, r2), -1 * prod);
-
-            assert_eq!((-1 * r2) * r1, -1 * prod);
-            assert_eq!(assign(-1 * r2, r1), -1 * prod);
-
-            assert_eq!((-1 * r1) * (-1 * r2), prod);
-            assert_eq!(assign(-1 * r1, -1 * r2), prod);
-        }
-    }
-
-    #[test]
-    fn integer_multiplied_by_rational_test() {
-        let assign = |int, rat| {
-            let mut rat_copy = rat;
-            rat_copy *= int;
-            rat_copy
-        };
-        for (int, rat, prod) in [(2, r(5, 9), r(10, 9)), (-3, r(5, 9), r(-5, 3))] {
-            assert_eq!(int * rat, prod);
-            assert_eq!(assign(int, rat), prod);
-
-            assert_eq!(rat * int, prod);
-
-            assert_eq!((-1 * int) * rat, -1 * prod);
-            assert_eq!(assign(-1 * int, rat), -1 * prod);
-
-            assert_eq!((-1 * rat) * int, -1 * prod);
-            assert_eq!(assign(int, -1 * rat), -1 * prod);
-
-            assert_eq!((-1 * int) * (-1 * rat), prod);
-            assert_eq!(assign(-1 * int, -1 * rat), prod);
-        }
-    }
-
-    #[test]
-    fn rational_divided_by_rational_test() {
-        let assign = |r1, r2| {
-            let mut r1_copy = r1;
-            r1_copy /= r2;
-            r1_copy
-        };
-        for (r1, r2, ans) in [
-            (r(5, 9), r(10, 31), r(31, 18)),
-            (r(50, 49), r(11, 12), r(600, 539)),
-        ] {
-            assert_eq!(r1 / r2, ans);
-            assert_eq!(assign(r1, r2), ans);
-
-            assert_eq!(r2 / r1, ans.inverse());
-            assert_eq!(assign(r2, r1), ans.inverse());
-
-            assert_eq!((-1 * r1) / r2, -1 * ans);
-            assert_eq!(assign(-1 * r1, r2), -1 * ans);
-
-            assert_eq!((-1 * r2) / r1, -1 * ans.inverse());
-            assert_eq!(assign(-1 * r2, r1), -1 * ans.inverse());
-        }
-    }
-
-    #[test]
-    fn integer_divided_by_rational_test() {
-        let assign = |int, rat| {
-            let mut rat_copy = rat;
-            rat_copy /= int;
-            rat_copy
-        };
-        for (int, rat, ans) in [
-            (6, r(1, 1), r(6, 1)),
-            (6, r(3, 4), r(8, 1)),
-            (6, r(4, 1), r(6, 4)),
-        ] {
-            assert_eq!(int / rat, ans);
-            assert_eq!(assign(int, rat), ans.inverse());
-
-            assert_eq!((-1 * int) / rat, -1 * ans);
-            assert_eq!((-1 * int) / (-1 * rat), ans);
-        }
-    }
-
-    #[test]
-    fn rational_by_rational_remainder_test() {
-        let assign = |r1, r2| {
-            let mut r1_copy = r1;
-            r1_copy %= r2;
-            r1_copy
-        };
-
-        for (r1, r2, rem) in [
-            (r(1, 4), r(1, 2), r(1, 4)),
-            (r(1, 3), r(1, 4), r(1, 12)),
-            (r(6, 1), r(2, 1), r(0, 1)),
-        ] {
-            assert_eq!(r1 % r2, rem);
-            assert_eq!(assign(r1, r2), rem);
-        }
-    }
-
-    #[test]
-    fn integer_by_rational_remainder_test() {
-        let assign = |int, rat| {
-            let mut rat_copy = rat;
-            rat_copy %= int;
-            rat_copy
-        };
-        for (int, rat, rem) in [(10, r(2, 5), r(0, 1)), (5, r(26, 5), r(1, 5))] {
-            dbg!(int, rat, rem);
-            if int > rat {
-                assert_eq!(int % rat, rem);
-                assert_eq!(rat % int, rat);
-                assert_eq!(assign(int, rat), rat);
-            } else if int < rat {
-                assert_eq!(int % rat, int);
-                assert_eq!(rat % int, rem);
-                assert_eq!(assign(int, rat), rem);
-            }
-        }
     }
 }

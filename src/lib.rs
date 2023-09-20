@@ -606,6 +606,12 @@ macro_rules! impl_from {
                 Rational::raw(v as i128, 1)
             }
         }
+
+        impl From<&$type> for Rational {
+            fn from(v: &$type) -> Self {
+                Rational::raw(*v as i128, 1)
+            }
+        }
     };
 }
 
