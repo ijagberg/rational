@@ -7,7 +7,10 @@ mod ops;
 mod num;
 
 use extras::gcd;
-use std::{fmt::Display, str::FromStr};
+use std::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 const DENOMINATOR_CANT_BE_ZERO: &str = "denominator can't be zero";
 
@@ -812,6 +815,16 @@ impl FromStr for Rational {
 pub enum ParseRationalError {
     ParseIntError(std::num::ParseIntError),
 }
+
+impl Display for ParseRationalError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ParseIntError(err) => err.fmt(f),
+        }
+    }
+}
+
+impl std::error::Error for ParseRationalError {}
 
 #[cfg(test)]
 #[allow(unused)]
