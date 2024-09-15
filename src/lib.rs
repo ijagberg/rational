@@ -831,7 +831,6 @@ impl std::error::Error for ParseRationalError {}
 mod tests {
     use super::*;
     use crate::extras::*;
-    use rand;
     use std::{cmp::Ordering, collections::HashMap};
 
     fn assert_eq_rational<Actual, Expected>(actual: Actual, expected: Expected)
@@ -942,7 +941,7 @@ mod tests {
         map.insert(key1, "exists");
 
         assert_eq!(map.get(&Rational::new(2, 4)).unwrap(), &"exists");
-        assert!(map.get(&Rational::new(1, 3)).is_none());
+        assert!(!map.contains_key(&Rational::new(1, 3)));
     }
 
     #[test]
