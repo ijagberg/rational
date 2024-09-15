@@ -94,7 +94,7 @@ impl Signed for Rational {
         if self.is_negative() {
             return -Rational::one();
         }
-        return Rational::zero();
+        Rational::zero()
     }
 
     fn is_positive(&self) -> bool {
@@ -113,5 +113,9 @@ impl FromPrimitive for Rational {
 
     fn from_u64(n: u64) -> Option<Self> {
         Some(Self::integer(n as i128))
+    }
+
+    fn from_i128(n: i128) -> Option<Self> {
+        Some(Self::integer(n))
     }
 }

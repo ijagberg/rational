@@ -19,11 +19,11 @@ pub fn r(n: i128, d: i128) -> Rational {
 /// ## Panics
 /// * If the result does not fit in the `i128` primitive type. This only happens in the cases below.
 /// ```rust,no_run
-///   # use rational::extras::*;
-///   // both of these are equal to `i128::MAX + 1`, which does not fit in an `i128`
-///   gcd(i128::MIN, 0);
-///   gcd(0, i128::MIN);
-///   gcd(i128::MIN, i128::MIN);
+/// # use rational::extras::*;
+/// // both of these are equal to `i128::MAX + 1`, which does not fit in an `i128`
+/// gcd(i128::MIN, 0);
+/// gcd(0, i128::MIN);
+/// gcd(i128::MIN, i128::MIN);
 /// ```
 ///
 /// ## Example
@@ -33,15 +33,42 @@ pub fn r(n: i128, d: i128) -> Rational {
 /// assert_eq!(gcd(899, 957), 29);
 /// assert_eq!(gcd(-899, 957), 29);
 /// ```
-pub fn gcd(mut a: i128, mut b: i128) -> i128 {
+pub fn gcd(a: i128, b: i128) -> i128 {
+    gcd_checked(a, b)
+        .unwrap_or_else(|| panic!("the gcd of {} and {} is equal to i128::MAX+1, which does not fit in the i128 primitive type", a, b))
+}
+
+/// Calculate the greatest common divisor of two numbers using [Stein's algorithm](https://en.wikipedia.org/wiki/Binary_GCD_algorithm).
+///
+/// ## Returns
+/// * `Some` if the result fits in the `i128` primitive type.
+/// * `None` if the result does not fit in the `i128` primitive type. This only happens in the cases below.
+/// ```rust,no_run
+/// # use rational::extras::*;
+/// gcd(i128::MIN, 0);
+/// gcd(0, i128::MIN);
+/// gcd(i128::MIN, i128::MIN);
+/// ```
+///
+/// ## Example
+/// ```rust
+/// # use rational::extras::*;
+/// assert_eq!(gcd_checked(9, 60), Some(3));
+/// assert_eq!(gcd_checked(899, 957), Some(29));
+/// assert_eq!(gcd_checked(-899, 957), Some(29));
+/// assert_eq!(gcd_checked(i128::MIN, 0), None);
+/// assert_eq!(gcd_checked(0, i128::MIN), None);
+/// assert_eq!(gcd_checked(i128::MIN, i128::MIN), None);
+/// ```
+pub fn gcd_checked(mut a: i128, mut b: i128) -> Option<i128> {
     if a == 0 || b == 0 {
-        return return_gcd(a, b, a | b);
+        return return_gcd_checked(a | b);
     }
 
     let factors_of_two = (a | b).trailing_zeros();
 
     if a == i128::MIN || b == i128::MIN {
-        return return_gcd(a, b, 1 << factors_of_two);
+        return return_gcd_checked(1 << factors_of_two);
     }
 
     a = a.abs() >> a.trailing_zeros();
@@ -56,14 +83,15 @@ pub fn gcd(mut a: i128, mut b: i128) -> i128 {
             b >>= b.trailing_zeros();
         }
     }
-    a << factors_of_two
+    Some(a << factors_of_two)
 }
 
-fn return_gcd(a: i128, b: i128, g: i128) -> i128 {
+/// Internal helper function for returning the correct gcd.
+fn return_gcd_checked(g: i128) -> Option<i128> {
     if g == i128::MIN {
-        panic!("the gcd of {} and {} is equal to i128::MAX+1, which does not fit in the i128 primitive type", a, b)
+        None
     } else {
-        g.abs()
+        Some(g.abs())
     }
 }
 
@@ -75,6 +103,7 @@ fn return_gcd(a: i128, b: i128, g: i128) -> i128 {
 /// ## Example
 /// ```rust
 /// # use rational::extras::*;
+/// assert_eq!(lcm(6, 4), 12);
 /// assert_eq!(lcm(6, 8), 24);
 /// assert_eq!(lcm(-6, 8), 24);
 /// ```
@@ -83,11 +112,12 @@ pub fn lcm(a: i128, b: i128) -> i128 {
     a.abs() * (b.abs() / g)
 }
 
-/// Calculate the least common multiple of two numbers, raturning `None` if overflow occurred.
+/// Calculate the least common multiple of two numbers, returning `None` if overflow occurred.
 ///
 /// ## Example
 /// ```rust
 /// # use rational::extras::*;
+/// assert_eq!(lcm_checked(6, 4), Some(12));
 /// assert_eq!(lcm_checked(6, 8), Some(24));
 /// assert_eq!(lcm_checked(-6, 8), Some(24));
 /// assert_eq!(lcm_checked(i128::MAX, i128::MAX - 1), None);

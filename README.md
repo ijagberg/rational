@@ -45,4 +45,4 @@ assert_eq!(fractional, Rational::new(2, 3));
 
 ## Features
 
-- Enable the `num-traits` feature to gain access to implementations of many of the traits defined in the `num-traits` crate for `Rationals`
+- `num-traits`: Enables implementations of many of the traits defined in the `num-traits` crate for `Rationals`

@@ -142,6 +142,7 @@ mod add {
     impl_add!(&i64);
     impl_add!(&i128);
 
+    #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -313,6 +314,7 @@ mod mul {
     impl_mul!(&i64);
     impl_mul!(&i128);
 
+    #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -479,6 +481,7 @@ mod sub {
     impl_sub!(&i64);
     impl_sub!(&i128);
 
+    #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -637,6 +640,7 @@ mod div {
     impl_div!(&i64);
     impl_div!(&i128);
 
+    #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -815,6 +819,7 @@ mod rem {
     impl_rem!(&i64);
     impl_rem!(&i128);
 
+    #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
         use super::*;
