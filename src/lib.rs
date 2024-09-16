@@ -12,14 +12,16 @@ use std::{
     str::FromStr,
 };
 
+/// Error/panic message to return when constructing a `Rational` where the
+/// denominator is equal to 0.
 const DENOMINATOR_CANT_BE_ZERO: &str = "denominator can't be zero";
 
 /// A rational number (a fraction of two integers).
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
 pub struct Rational {
-    /// The numerator (number above the fraction line).
+    /// The numerator of this `Rational`.
     numerator: i128,
-    /// The denominator (number below the fraction line).
+    /// The denominator of this `Rational`.
     denominator: i128,
 }
 
@@ -564,7 +566,7 @@ impl Rational {
     ///
     /// The string is expected be in one of the following two forms:
     /// * `"x/y"`, where `x` and `y` follow the format expected by the `from_str_radix` methods in the standard library.
-    /// * `"x"`, where `x` follow the format expected by the `from_str_radix` methods in the standard library.
+    /// * `"x"`, where `x` follows the format expected by the `from_str_radix` methods in the standard library.
     ///
     /// ## Panics
     /// * If `radix` is not in the range from 2 to 36.
@@ -572,12 +574,14 @@ impl Rational {
     /// ## Examples
     /// ```rust
     /// # use rational::Rational;
+    /// # use rational::ParseRationalError;
     /// assert_eq!(Rational::from_str_radix("1/2", 10), Ok(Rational::new(1, 2)));
     /// assert_eq!(Rational::from_str_radix("110", 2), Ok(Rational::integer(6)));
-    /// assert_eq!(Rational::from_str_radix("-1/2", 10), Ok(Rational::new(-1, 2)));
+    /// assert_eq!(Rational::from_str_radix("-1", 10), Ok(Rational::integer(-1)));
     /// assert_eq!(Rational::from_str_radix("1/-2", 10), Ok(Rational::new(-1, 2)));
+    /// assert_eq!(Rational::from_str_radix("1/0", 10), Err(ParseRationalError::DenominatorIsZero));
+    /// assert!(matches!(Rational::from_str_radix("1/1a", 10), Err(ParseRationalError::ParseIntError(_))));
     /// ```
-    ///
     pub fn from_str_radix(s: &str, radix: u32) -> Result<Self, ParseRationalError> {
         match s.split_once('/') {
             Some((num, den)) => {
@@ -585,6 +589,9 @@ impl Rational {
                     i128::from_str_radix(num, radix).map_err(ParseRationalError::ParseIntError)?;
                 let den =
                     i128::from_str_radix(den, radix).map_err(ParseRationalError::ParseIntError)?;
+                if den == 0 {
+                    return Err(ParseRationalError::DenominatorIsZero);
+                }
                 Ok(Self::new(num, den))
             }
             None => {
@@ -811,15 +818,20 @@ impl FromStr for Rational {
     }
 }
 
+/// An error which can be returned when parsing a `Rational`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseRationalError {
+    /// Denominator in `Rational` is zero.
+    DenominatorIsZero,
+    /// Failed to parse integer in input.
     ParseIntError(std::num::ParseIntError),
 }
 
 impl Display for ParseRationalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ParseIntError(err) => err.fmt(f),
+            ParseRationalError::DenominatorIsZero => DENOMINATOR_CANT_BE_ZERO.fmt(f),
+            ParseRationalError::ParseIntError(err) => err.fmt(f),
         }
     }
 }
