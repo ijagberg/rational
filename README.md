@@ -1,4 +1,4 @@
-A minimal library for representing rational numbers (ratios of integers).
+A minimal library for representing rational numbers.
 
 ## Construction
 
