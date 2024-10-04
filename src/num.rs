@@ -1,8 +1,28 @@
 use crate::{ParseRationalError, Rational};
 use num_traits::{
-    CheckedAdd, CheckedDiv, CheckedMul, CheckedNeg, CheckedSub, FromPrimitive, Inv, Num, One, Pow,
-    Signed, Zero,
+    CheckedAdd, CheckedDiv, CheckedMul, CheckedNeg, CheckedSub, Float, FromPrimitive, Inv, Num,
+    One, Pow, Signed, Zero,
 };
+
+impl Rational {
+    pub fn from_float(f: f64) -> Option<Self> {
+        if !f.is_finite() {
+            return None;
+        }
+
+        let decoded @ (mantissa, exponent, sign) = f.integer_decode();
+
+        dbg!(decoded);
+        if exponent.is_positive() {
+            let numerator = i128::from(mantissa * 2_u64.pow(exponent as u32));
+            Some(Self::integer(numerator) * sign)
+        } else {
+            let numerator = mantissa as i128;
+            let denominator = 2i128.pow((-exponent) as u32);
+            Some(Self::new(numerator, denominator) * sign)
+        }
+    }
+}
 
 impl CheckedAdd for Rational {
     fn checked_add(&self, v: &Self) -> Option<Self> {
@@ -117,5 +137,24 @@ impl FromPrimitive for Rational {
 
     fn from_i128(n: i128) -> Option<Self> {
         Some(Self::integer(n))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_float_test() {
+        assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        assert_eq!(Rational::from_float(2.0).unwrap(), Rational::new(2, 1));
+        assert_eq!(Rational::from_float(-1.141514).unwrap().decimal_value(), -1.141514);
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
     }
 }
