@@ -13,8 +13,9 @@ homepage = "https://github.com/ijagberg/rational"
 [dependencies]
 num-traits = { version = "0.2.16", optional = true }
 
-[dev-dependencies]
-rand = "0.8.3"
-
 [features]
 num-traits = ["dep:num-traits"]
+
+[dev-dependencies]
+num-rational = "0.4.2"
+rand = "0.8.3"
