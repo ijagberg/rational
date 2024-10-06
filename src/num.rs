@@ -5,20 +5,35 @@ use num_traits::{
 };
 
 impl Rational {
+    /// Attempts to construct a `Rational` from the given floating point value.
+    ///
+    /// Uses the `integer_decode` method from `num_traits`.
+    ///
+    /// ## Notes
+    /// Returns `None` if `f` is not finite, or if integer overflow occurs during construction.
+    /// This happens for values with large exponents, where `2^exponent` cannot fit in an `i128`.
+    /// In these cases, I would recommend using the `num_rational` crate instead, which is slower but can handle arbitrary values.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::Rational;
+    ///
+    /// assert_eq!(Rational::from_float(0.5), Some(Rational::new(1, 2)));
+    /// assert_eq!(Rational::from_float(f64::INFINITY), None);
+    /// assert_eq!(Rational::from_float(f64::MIN_POSITIVE), None); // requires more precision
+    /// ```
     pub fn from_float(f: f64) -> Option<Self> {
         if !f.is_finite() {
             return None;
         }
 
-        let decoded @ (mantissa, exponent, sign) = f.integer_decode();
-
-        dbg!(decoded);
+        let (mantissa, exponent, sign) = f.integer_decode();
         if exponent.is_positive() {
-            let numerator = i128::from(mantissa * 2_u64.pow(exponent as u32));
+            let numerator = i128::from(mantissa.checked_mul(2_u64.checked_pow(exponent as u32)?)?);
             Some(Self::integer(numerator) * sign)
         } else {
             let numerator = mantissa as i128;
-            let denominator = 2i128.pow((-exponent) as u32);
+            let denominator = 2i128.checked_pow((-exponent) as u32)?;
             Some(Self::new(numerator, denominator) * sign)
         }
     }
@@ -148,13 +163,24 @@ mod tests {
     fn from_float_test() {
         assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
         assert_eq!(Rational::from_float(2.0).unwrap(), Rational::new(2, 1));
-        assert_eq!(Rational::from_float(-1.141514).unwrap().decimal_value(), -1.141514);
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
-        // assert_eq!(Rational::from_float(0.5).unwrap(), Rational::new(1, 2));
+        assert_eq!(
+            Rational::from_float(-1.141514).unwrap().decimal_value(),
+            -1.141514
+        );
+        assert_eq!(Rational::from_float(f64::NAN), None);
+        assert_eq!(Rational::from_float(f64::INFINITY), None);
+        assert_eq!(Rational::from_float(f64::NEG_INFINITY), None);
+        assert_eq!(Rational::from_float(f64::MIN_POSITIVE), None);
+        assert_eq!(Rational::from_float(f64::MIN), None);
+
+        for f in (0..1_000_000).map(|_| rand::random::<f64>()) {
+            let r = Rational::from_float(f).unwrap();
+            let dec = r.decimal_value();
+            assert_eq!(
+                dec, f,
+                "Rational::from_float({}) = {}, but decimal value is {}",
+                f, r, dec
+            );
+        }
     }
 }
