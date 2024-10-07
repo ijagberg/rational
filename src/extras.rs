@@ -106,6 +106,7 @@ fn return_gcd_checked(g: i128) -> Option<i128> {
 /// assert_eq!(lcm(6, 4), 12);
 /// assert_eq!(lcm(6, 8), 24);
 /// assert_eq!(lcm(-6, 8), 24);
+/// assert_eq!(lcm(-6, -8), 24);
 /// ```
 pub fn lcm(a: i128, b: i128) -> i128 {
     let g = gcd(a, b);
