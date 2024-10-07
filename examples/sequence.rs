@@ -1,7 +1,7 @@
 use rational::Rational;
 use std::collections::HashMap;
 
-/// An interesting sequence I found.
+/// An interesting sequence I found. Has something to do with coprimes, not exactly sure what.
 ///
 /// ## Description
 /// Given an integer `n`, generate a list of all possible rational numbers with the numerator and denominator in the range `1..=n`,
@@ -10,19 +10,19 @@ use std::collections::HashMap;
 ///
 /// ## Example
 /// `n = 4`:
-/// 
+///
 /// The list of non-reduced rationals that can be constructed with integers in `1..=4`:
 /// ```
 /// [1/1, 1/2, 1/3, 1/4, 2/1, 2/2, 2/3, 2/4, 3/1, 3/2, 3/3, 3/4, 4/1, 4/2, 4/3, 4/4]
 /// ```
 /// After reducing each rational, and sorting the list (to make marking duplicates easier):
-/// 
+///
 /// ```
 /// [1/4, 1/3, 1/2, 1/2, 2/3, 3/4, 1/1, 1/1, 1/1, 1/1, 4/3, 3/2, 2/1, 2/1, 3/1, 4/1]
 ///            --------            ------------------            --------
 /// ```
 /// So, removing these duplicate values, we are left with 8 unique values, giving `f(4)=8`.
-/// 
+///
 /// The sequence looks like this for `n in 1..=20`:
 /// ```
 /// 1, 2, 6, 8, 16, 16, 28, 32, 44, 44, 64, 68, 92, 92, 108, 116, 148, 148, 184, 192
