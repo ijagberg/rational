@@ -69,7 +69,11 @@ impl Serialize for Rational {
         S: Serializer,
     {
         if self.is_integer() {
-            serializer.serialize_i128(self.numerator)
+            if let Ok(i) = i64::try_from(self.numerator) {
+                serializer.serialize_i64(i)
+            } else {
+                serializer.serialize_i128(self.numerator)
+            }
         } else {
             serializer.serialize_str(&self.to_string())
         }
