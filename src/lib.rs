@@ -5,6 +5,8 @@ mod ops;
 
 #[cfg(feature = "num-traits")]
 mod num;
+#[cfg(feature = "serde")]
+mod serde;
 
 use extras::gcd;
 use std::{
