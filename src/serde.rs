@@ -88,12 +88,14 @@ macro_rules! test_case {
 
             #[test]
             fn test_serialize() {
-                assert_eq!(serde_json::to_string(&$value).unwrap(), $str);
+                const ERR: &str = concat!("Error trying to serialize ", stringify!($value));
+                assert_eq!(serde_json::to_string(&$value).expect(ERR), $str);
             }
 
             #[test]
             fn test_deserialize() {
-                assert_eq!(serde_json::from_str::<Rational>($str).unwrap(), $value);
+                const ERR: &str = concat!("Error trying to deserialize ", stringify!($str));
+                assert_eq!(serde_json::from_str::<Rational>($str).expect(ERR), $value);
             }
         }
     };
@@ -105,5 +107,5 @@ test_case!(minus_one, -Rational::one(), "-1");
 test_case!(
     very_big,
     Rational::integer(i128::MAX),
-    i128::MAX.to_string().as_str()
+    "170141183460469231731687303715884105727"
 );
