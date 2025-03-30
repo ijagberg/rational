@@ -80,32 +80,71 @@ impl Serialize for Rational {
     }
 }
 
+/// Define a test case. Will have a serialize and deserialize test function.
+///
+/// The test uses `serde_json::Value`. Trying to use the json string representation fails
+/// since serde_json is not capable of reliably serializing and deserializing big values
+/// that require 128bit precision. Other data formats such as `toml` only support 64bit
+/// so this is the best we can do.
 macro_rules! test_case {
-    ($name:ident, $value:expr, $str:expr) => {
+    ($name:ident, $rational:expr, $value:expr) => {
         #[cfg(test)]
         mod $name {
             use crate::Rational;
+            use serde_json::Value;
 
             #[test]
             fn test_serialize() {
-                const ERR: &str = concat!("Error trying to serialize ", stringify!($value));
-                assert_eq!(serde_json::to_string(&$value).expect(ERR), $str);
+                const ERR: &str = concat!("Error trying to serialize ", stringify!($rational));
+                assert_eq!(serde_json::to_value(&$rational).expect(ERR), $value);
             }
 
             #[test]
             fn test_deserialize() {
-                const ERR: &str = concat!("Error trying to deserialize ", stringify!($str));
-                assert_eq!(serde_json::from_str::<Rational>($str).expect(ERR), $value);
+                const ERR: &str = concat!("Error trying to deserialize ", stringify!($value));
+                assert_eq!(
+                    serde_json::from_value::<Rational>($value).expect(ERR),
+                    $rational
+                );
             }
         }
     };
 }
 
-test_case!(zero, Rational::zero(), "0");
-test_case!(one, Rational::one(), "1");
-test_case!(minus_one, -Rational::one(), "-1");
+// integer test cases
+test_case!(zero, Rational::zero(), Value::from(0));
+test_case!(one, Rational::one(), Value::from(1));
+test_case!(minus_one, -Rational::one(), Value::from(-1));
 test_case!(
     very_big,
     Rational::integer(i128::MAX),
-    "170141183460469231731687303715884105727"
+    Value::from(i128::MAX)
+);
+test_case!(
+    very_small,
+    Rational::integer(i128::MIN),
+    Value::from(i128::MIN)
+);
+
+// non-integer test cases
+test_case!(one_half, Rational::new(1, 2), Value::from("1/2"));
+test_case!(
+    epsilon,
+    Rational::new(1, i128::MAX),
+    Value::from("1/170141183460469231731687303715884105727")
+);
+test_case!(
+    minus_epsilon,
+    Rational::new(-1, i128::MAX),
+    Value::from("-1/170141183460469231731687303715884105727")
+);
+test_case!(
+    very_big_half,
+    Rational::new(i128::MAX, 2),
+    Value::from("170141183460469231731687303715884105727/2")
+);
+test_case!(
+    very_small_third,
+    Rational::new(i128::MIN, 3),
+    Value::from("-170141183460469231731687303715884105728/3")
 );
