@@ -46,3 +46,4 @@ assert_eq!(fractional, Rational::new(2, 3));
 ## Features
 
 - `num-traits`: Enables implementations of many of the traits defined in the `num-traits` crate for `Rationals`
+- `serde`: Enables `Deserialize` and `Serialize` implementations for `Rational`
