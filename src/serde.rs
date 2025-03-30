@@ -79,3 +79,31 @@ impl Serialize for Rational {
         }
     }
 }
+
+macro_rules! test_case {
+    ($name:ident, $value:expr, $str:expr) => {
+        #[cfg(test)]
+        mod $name {
+            use crate::Rational;
+
+            #[test]
+            fn test_serialize() {
+                assert_eq!(serde_json::to_string(&$value).unwrap(), $str);
+            }
+
+            #[test]
+            fn test_deserialize() {
+                assert_eq!(serde_json::from_str::<Rational>($str).unwrap(), $value);
+            }
+        }
+    };
+}
+
+test_case!(zero, Rational::zero(), "0");
+test_case!(one, Rational::one(), "1");
+test_case!(minus_one, -Rational::one(), "-1");
+test_case!(
+    very_big,
+    Rational::integer(i128::MAX),
+    i128::MAX.to_string().as_str()
+);
