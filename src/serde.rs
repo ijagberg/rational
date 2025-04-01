@@ -68,15 +68,7 @@ impl Serialize for Rational {
     where
         S: Serializer,
     {
-        if self.is_integer() {
-            if let Ok(i) = i64::try_from(self.numerator) {
-                serializer.serialize_i64(i)
-            } else {
-                serializer.serialize_i128(self.numerator)
-            }
-        } else {
-            serializer.serialize_str(&self.to_string())
-        }
+        serializer.serialize_str(&self.to_string())
     }
 }
 
@@ -87,7 +79,7 @@ impl Serialize for Rational {
 /// that require 128bit precision. Other data formats such as `toml` only support 64bit
 /// so this is the best we can do.
 macro_rules! test_case {
-    ($name:ident, $rational:expr, $value:expr) => {
+    ($name:ident, $rational:expr, $value:expr $(, $value_int:expr)?) => {
         #[cfg(test)]
         mod $name {
             use crate::Rational;
@@ -107,22 +99,40 @@ macro_rules! test_case {
                     $rational
                 );
             }
+
+            $(
+                #[test]
+                fn test_deserialize_int() {
+                    const ERR: &str = concat!("Error trying to deserialize ", stringify!($value_int));
+                    assert_eq!(
+                        serde_json::from_value::<Rational>($value_int).expect(ERR),
+                        $rational
+                    );
+                }
+            )?
         }
     };
 }
 
 // integer test cases
-test_case!(zero, Rational::zero(), Value::from(0));
-test_case!(one, Rational::one(), Value::from(1));
-test_case!(minus_one, -Rational::one(), Value::from(-1));
+test_case!(zero, Rational::zero(), Value::from("0/1"), Value::from(0));
+test_case!(one, Rational::one(), Value::from("1/1"), Value::from(1));
+test_case!(
+    minus_one,
+    -Rational::one(),
+    Value::from("-1/1"),
+    Value::from(-1)
+);
 test_case!(
     very_big,
     Rational::integer(i128::MAX),
+    Value::from("170141183460469231731687303715884105727/1"),
     Value::from(i128::MAX)
 );
 test_case!(
     very_small,
     Rational::integer(i128::MIN),
+    Value::from("-170141183460469231731687303715884105728/1"),
     Value::from(i128::MIN)
 );
 
