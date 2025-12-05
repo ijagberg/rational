@@ -142,6 +142,45 @@ mod add {
     impl_add!(&i64);
     impl_add!(&i128);
 
+    macro_rules! impl_add_f {
+        ($type:ty) => {
+            impl Add<$type> for Rational {
+                type Output = $type;
+
+                fn add(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() + rhs as f64) as $type
+                }
+            }
+
+            impl Add<$type> for &Rational {
+                type Output = $type;
+
+                fn add(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() + rhs as f64) as $type
+                }
+            }
+
+            impl Add<Rational> for $type {
+                type Output = $type;
+
+                fn add(self, rhs: Rational) -> Self::Output {
+                    (rhs.decimal_value() + self as f64) as $type
+                }
+            }
+
+            impl Add<&Rational> for $type {
+                type Output = $type;
+
+                fn add(self, rhs: &Rational) -> Self::Output {
+                    (rhs.decimal_value() + self as f64) as $type
+                }
+            }
+        };
+    }
+
+    impl_add_f!(f32);
+    impl_add_f!(f64);
+
     #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
@@ -314,6 +353,45 @@ mod mul {
     impl_mul!(&i64);
     impl_mul!(&i128);
 
+    macro_rules! impl_mul_f {
+        ($type:ty) => {
+            impl Mul<$type> for Rational {
+                type Output = $type;
+
+                fn mul(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() * rhs as f64) as $type
+                }
+            }
+
+            impl Mul<$type> for &Rational {
+                type Output = $type;
+
+                fn mul(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() * rhs as f64) as $type
+                }
+            }
+
+            impl Mul<Rational> for $type {
+                type Output = $type;
+
+                fn mul(self, rhs: Rational) -> Self::Output {
+                    (rhs.decimal_value() * self as f64) as $type
+                }
+            }
+
+            impl Mul<&Rational> for $type {
+                type Output = $type;
+
+                fn mul(self, rhs: &Rational) -> Self::Output {
+                    (rhs.decimal_value() * self as f64) as $type
+                }
+            }
+        };
+    }
+
+    impl_mul_f!(f32);
+    impl_mul_f!(f64);
+
     #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
@@ -481,6 +559,45 @@ mod sub {
     impl_sub!(&i64);
     impl_sub!(&i128);
 
+    macro_rules! impl_sub_f {
+        ($type:ty) => {
+            impl Sub<$type> for Rational {
+                type Output = $type;
+
+                fn sub(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() - rhs as f64) as $type
+                }
+            }
+
+            impl Sub<$type> for &Rational {
+                type Output = $type;
+
+                fn sub(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() - rhs as f64) as $type
+                }
+            }
+
+            impl Sub<Rational> for $type {
+                type Output = $type;
+
+                fn sub(self, rhs: Rational) -> Self::Output {
+                    (self as f64 - rhs.decimal_value()) as $type
+                }
+            }
+
+            impl Sub<&Rational> for $type {
+                type Output = $type;
+
+                fn sub(self, rhs: &Rational) -> Self::Output {
+                    (self as f64 - rhs.decimal_value()) as $type
+                }
+            }
+        };
+    }
+
+    impl_sub_f!(f32);
+    impl_sub_f!(f64);
+
     #[allow(clippy::op_ref)]
     #[cfg(test)]
     mod tests {
@@ -639,6 +756,45 @@ mod div {
     impl_div!(&i32);
     impl_div!(&i64);
     impl_div!(&i128);
+
+    macro_rules! impl_div_f {
+        ($type:ty) => {
+            impl Div<$type> for Rational {
+                type Output = $type;
+
+                fn div(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() / rhs as f64) as $type
+                }
+            }
+
+            impl Div<$type> for &Rational {
+                type Output = $type;
+
+                fn div(self, rhs: $type) -> Self::Output {
+                    (self.decimal_value() / rhs as f64) as $type
+                }
+            }
+
+            impl Div<Rational> for $type {
+                type Output = $type;
+
+                fn div(self, rhs: Rational) -> Self::Output {
+                    (self as f64 / rhs.decimal_value()) as $type
+                }
+            }
+
+            impl Div<&Rational> for $type {
+                type Output = $type;
+
+                fn div(self, rhs: &Rational) -> Self::Output {
+                    (self as f64 / rhs.decimal_value()) as $type
+                }
+            }
+        };
+    }
+
+    impl_div_f!(f32);
+    impl_div_f!(f64);
 
     #[allow(clippy::op_ref)]
     #[cfg(test)]

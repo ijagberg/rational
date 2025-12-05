@@ -154,7 +154,7 @@ pub fn is_coprime(l: i128, r: i128) -> bool {
 /// // to create a rational number that estimates the mathematical constant `e` (~2.7182818...)
 /// // we can use the continued fraction [2;1,2,1,1,4,1,1,6,1,1,8]
 /// let e = continued_fraction(2, &[1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]);
-/// assert!((e.decimal_value() - std::f64::consts::E).abs() < 0.0000001);
+/// assert!((e - std::f64::consts::E).abs() < 0.0000001);
 /// ```
 pub fn continued_fraction(init: u64, cont: &[u64]) -> Rational {
     let mut r = Rational::new(0, 1);
