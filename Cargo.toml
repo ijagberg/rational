@@ -2,7 +2,7 @@
 name = "rational"
 description = "Minimalistic library for rational numbers"
 version = "1.7.0"
-authors = ["Isak Jägberg <ijagberg@gmail.com>"]
+authors = ["Isak Jägberg <ijagberg@protonmail.com>"]
 edition = "2021"
 license = "MIT"
 keywords = ["rational", "ratio", "fraction", "fractions"]
