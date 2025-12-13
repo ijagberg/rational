@@ -639,12 +639,12 @@ impl_from!(i128);
 
 impl<T, U> From<(T, U)> for Rational
 where
-    T: Into<Rational>,
-    U: Into<Rational>,
+    Rational: From<T>,
+    Rational: From<U>,
 {
     fn from((n, d): (T, U)) -> Self {
-        let n: Self = n.into();
-        let d: Self = d.into();
+        let n = Self::from(n);
+        let d = Self::from(d);
 
         Self::new(n, d)
     }
