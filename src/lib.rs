@@ -610,7 +610,6 @@ impl Rational {
     /// assert_eq!(Rational::from_str_radix("1/0", 10), Err(ParseRationalError::DenominatorIsZero));
     /// assert!(matches!(Rational::from_str_radix("1/1a", 10), Err(ParseRationalError::ParseIntError(_))));
     /// ```
-    #[must_use]
     pub fn from_str_radix(s: &str, radix: u32) -> Result<Self, ParseRationalError> {
         match s.split_once('/') {
             Some((num, den)) => {
