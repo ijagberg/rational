@@ -22,6 +22,7 @@ impl Rational {
     /// assert_eq!(Rational::from_float(f64::INFINITY), None);
     /// assert_eq!(Rational::from_float(f64::MIN_POSITIVE), None); // requires more precision
     /// ```
+    #[must_use]
     pub fn from_float(f: f64) -> Option<Self> {
         if !f.is_finite() {
             return None;
