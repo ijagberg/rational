@@ -166,7 +166,7 @@ pub fn continued_fraction(init: u64, cont: &[u64]) -> Rational {
     r + init
 }
 
-pub fn continued_fraction_iter(init: u64, cont: &[u64]) -> ContinuedFractionIter {
+pub fn continued_fraction_iter(init: u64, cont: &[u64]) -> ContinuedFractionIter<'_> {
     ContinuedFractionIter::new(Rational::new(init, 1), cont)
 }
 
