@@ -53,6 +53,7 @@ impl Rational {
     ///
     /// ## Panics
     /// * If the resulting denominator is 0.
+    #[must_use]
     pub fn new<N, D>(numerator: N, denominator: D) -> Self
     where
         N: Into<Self>,
@@ -62,6 +63,7 @@ impl Rational {
     }
 
     /// Construct a new Rational, returning `None` if the denominator is 0.
+    #[must_use]
     pub fn new_checked<N, D>(numerator: N, denominator: D) -> Option<Self>
     where
         N: Into<Self>,
@@ -90,6 +92,7 @@ impl Rational {
     /// assert_eq!(Rational::from_mixed(1, (1, 2)), Rational::new(3, 2));
     /// assert_eq!(Rational::from_mixed(-1, (-1, 2)), Rational::new(-3, 2));
     /// ```
+    #[must_use]
     pub fn from_mixed<T>(whole: i128, fract: T) -> Self
     where
         T: Into<Self>,
@@ -106,17 +109,20 @@ impl Rational {
     /// assert_eq!(Rational::integer(5), Rational::new(5, 1));
     /// assert_eq!(Rational::integer(-100), Rational::new(-100, 1));
     /// ```
+    #[must_use]
     pub fn integer(n: i128) -> Self {
         // use 'raw' since an integer is always already reduced
         Self::raw(n, 1)
     }
 
     /// Shorthand for 0/1.
+    #[must_use]
     pub fn zero() -> Self {
         Self::integer(0)
     }
 
     /// Shorthand for 1/1.
+    #[must_use]
     pub fn one() -> Self {
         Self::integer(1)
     }
@@ -129,6 +135,7 @@ impl Rational {
     /// let r = Rational::new(4, 6);
     /// assert_eq!(r.numerator(), 2); // `r` has been reduced to 2/3
     /// ```
+    #[must_use]
     pub fn numerator(&self) -> i128 {
         self.numerator
     }
@@ -155,6 +162,7 @@ impl Rational {
     /// let r = Rational::new(4, 6);
     /// assert_eq!(r.denominator(), 3); // `r` has been reduced to 2/3
     /// ```
+    #[must_use]
     pub fn denominator(&self) -> i128 {
         self.denominator
     }
@@ -190,6 +198,7 @@ impl Rational {
     /// let zero = Rational::new(0, 1);
     /// assert!(zero.inverse_checked().is_none());
     /// ```
+    #[must_use]
     pub fn inverse_checked(self) -> Option<Self> {
         if self.numerator() == 0 {
             None
@@ -216,12 +225,14 @@ impl Rational {
     /// # use rational::Rational;
     /// assert_eq!(Rational::new(1, 2).inverse(), Rational::new(2, 1));
     /// ```
+    #[must_use]
     pub fn inverse(self) -> Self {
         Self::new(1, self)
     }
 
     /// Returns the decimal value of this `Rational`.
     /// Equivalent to `f64::from(self)`.
+    #[must_use]
     pub fn decimal_value(self) -> f64 {
         f64::from(self)
     }
@@ -240,6 +251,7 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 2).checked_add(2_i32), Some(Rational::new(5, 2)));
     /// assert!(Rational::new(1, 1).checked_add(i128::MAX).is_none());
     /// ```
+    #[must_use]
     pub fn checked_add<T>(self, rhs: T) -> Option<Self>
     where
         T: Into<Self>,
@@ -276,6 +288,7 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 2).checked_mul(2_i32), Some(Rational::new(1, 1)));
     /// assert!(Rational::new(2, 1).checked_mul(i128::MAX).is_none());
     /// ```
+    #[must_use]
     pub fn checked_mul<T>(self, rhs: T) -> Option<Self>
     where
         T: Into<Self>,
@@ -309,6 +322,7 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 2).checked_sub(2_i32), Some(Rational::new(-3, 2)));
     /// assert!(Rational::new(-10, 1).checked_sub(i128::MAX).is_none());
     /// ```
+    #[must_use]
     pub fn checked_sub<T>(self, rhs: T) -> Option<Self>
     where
         T: Into<Self>,
@@ -334,6 +348,7 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 2).checked_div(2_i32), Some(Rational::new(1, 4)));
     /// assert!(Rational::new(1, i128::MAX).checked_div(i128::MAX).is_none());
     /// ```
+    #[must_use]
     pub fn checked_div<T>(self, rhs: T) -> Option<Self>
     where
         T: Into<Self>,
@@ -357,6 +372,7 @@ impl Rational {
     /// assert_eq!(Rational::new(2, 3).pow(2), Rational::new(4, 9));
     /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
     /// ```
+    #[must_use]
     pub fn pow(self, exp: i32) -> Rational {
         let abs = exp.unsigned_abs();
         let result =
@@ -383,6 +399,7 @@ impl Rational {
     /// assert_eq!(Rational::new(2, 3).pow(2), Rational::new(4, 9));
     /// assert_eq!(Rational::new(1, 4).pow(-2), Rational::new(16, 1));
     /// ```
+    #[must_use]
     pub fn checked_pow(self, exp: i32) -> Option<Self> {
         if self == Self::zero() && exp.is_negative() {
             return None;
@@ -411,6 +428,7 @@ impl Rational {
     /// assert_eq!(Rational::new(-1, 2).checked_neg(), Some(Rational::new(1, 2)));
     /// assert_eq!(Rational::new(i128::MIN, 1).checked_neg(), None);
     /// ```
+    #[must_use]
     pub fn checked_neg(self) -> Option<Self> {
         if self.numerator() == i128::MIN {
             None
@@ -426,6 +444,7 @@ impl Rational {
     /// # use rational::*;
     /// assert_eq!(Rational::new(-5, 3).abs(), Rational::new(5, 3));
     /// ```
+    #[must_use]
     pub fn abs(self) -> Self {
         // use `raw` since we know neither numerator or denominator will be negative
         Self::raw(self.numerator.abs(), self.denominator)
@@ -440,6 +459,7 @@ impl Rational {
     /// assert!(Rational::new(2, 1).is_integer());
     /// assert!(!Rational::new(1, 2).is_integer());
     /// ```
+    #[must_use]
     pub fn is_integer(&self) -> bool {
         self.denominator() == 1
     }
@@ -454,6 +474,7 @@ impl Rational {
     /// assert!(!Rational::new(-1, 2).is_positive());
     /// assert!(!Rational::zero().is_positive());
     /// ```
+    #[must_use]
     pub fn is_positive(&self) -> bool {
         self.numerator().is_positive()
     }
@@ -467,6 +488,7 @@ impl Rational {
     /// assert!(Rational::new(1, -2).is_negative());
     /// assert!(!Rational::zero().is_negative());
     /// ```
+    #[must_use]
     pub fn is_negative(&self) -> bool {
         self.numerator().is_negative()
     }
@@ -485,6 +507,7 @@ impl Rational {
     /// assert_eq!((mixed, fract), (-3, Rational::new(-1, 2)));
     /// assert_eq!(mixed + fract, Rational::new(-7, 2));
     /// ```
+    #[must_use]
     pub fn mixed_fraction(self) -> (i128, Self) {
         let rem = self.numerator() % self.denominator();
         let whole = self.numerator() / self.denominator();
@@ -502,6 +525,7 @@ impl Rational {
     /// assert_eq!(Rational::new(1, 2).round(), Rational::integer(1));
     /// assert_eq!(Rational::new(-1, 2).round(), Rational::integer(-1));
     /// ```
+    #[must_use]
     pub fn round(self) -> Self {
         if self.is_positive() {
             let left = Self::integer(self.numerator() / self.denominator());
@@ -538,6 +562,7 @@ impl Rational {
     /// assert_eq!(Rational::new(4, 3).floor(), Rational::integer(1));
     /// assert_eq!(Rational::new(-3, 2).floor(), Rational::integer(-2));
     /// ```
+    #[must_use]
     pub fn floor(self) -> Self {
         let r = Self::integer(self.numerator() / self.denominator());
         if self.is_negative() && self != r {
@@ -555,6 +580,7 @@ impl Rational {
     /// assert_eq!(Rational::new(4, 3).ceil(), Rational::integer(2));
     /// assert_eq!(Rational::new(-3, 2).ceil(), Rational::integer(-1));
     /// ```
+    #[must_use]
     pub fn ceil(self) -> Self {
         let r = Self::integer(self.numerator() / self.denominator());
         if self.is_positive() && self != r {
@@ -584,6 +610,7 @@ impl Rational {
     /// assert_eq!(Rational::from_str_radix("1/0", 10), Err(ParseRationalError::DenominatorIsZero));
     /// assert!(matches!(Rational::from_str_radix("1/1a", 10), Err(ParseRationalError::ParseIntError(_))));
     /// ```
+    #[must_use]
     pub fn from_str_radix(s: &str, radix: u32) -> Result<Self, ParseRationalError> {
         match s.split_once('/') {
             Some((num, den)) => {
