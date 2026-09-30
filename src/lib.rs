@@ -493,6 +493,34 @@ impl Rational {
         self.numerator().is_negative()
     }
 
+    /// Returns `true` if `self` is a proper fraction.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert!(Rational::new(3, 8).is_proper());
+    /// assert!(!Rational::new(5, 5).is_proper());
+    /// assert!(!Rational::new(7, 4).is_proper());
+    /// assert!(Rational::new(2, 9).is_proper());
+    #[must_use]
+    pub fn is_proper(&self) -> bool {
+        self.numerator() < self.denominator()
+    }
+
+    /// Returns `true` if `self` is an improper fraction.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # use rational::*;
+    /// assert!(!Rational::new(3, 8).is_improper());
+    /// assert!(Rational::new(5, 5).is_improper());
+    /// assert!(Rational::new(7, 4).is_improper());
+    /// assert!(!Rational::new(2, 9).is_improper());
+    #[must_use]
+    pub fn is_improper(&self) -> bool {
+        !self.is_proper()
+    }
+
     /// Returns a tuple representing `self` as a [mixed fraction](https://en.wikipedia.org/wiki/Fraction#Mixed_numbers).
     ///
     /// ## Notes
